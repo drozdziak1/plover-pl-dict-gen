@@ -8,6 +8,155 @@ static OUT_FILE_PATH: &'static str = "out.txt";
 
 pub type ErrBox = Box<dyn std::error::Error>;
 
+// Singles - page 26
+
+static SINGLES_LEFT: phf::Map<&'static str, &'static str> = phf::phf_map! {
+    "f" => "F",
+    "z" => "Z",
+    "s" => "S",
+    "k" => "K",
+    "t" => "T",
+    "p" => "P",
+    "v" => "V",
+    "w" => "W",
+    "l" => "R",
+};
+
+static SINGLES_CENTER: phf::Map<&'static str, &'static str> = phf::phf_map! {
+    "j" => "J",
+    "e" => "E",
+    "i" => "I",
+    "a" => "A",
+    "u" => "U",
+};
+
+static SINGLES_RIGHT: phf::Map<&'static str, &'static str> = phf::phf_map! {
+    "c" => "C",
+    "r" => "R",
+    "l" => "L",
+    "b" => "B",
+    "s" => "S",
+    "g" => "G",
+    "t" => "T",
+    "v" => "V",
+    "w" => "V",
+    "o" => "O",
+    "y" => "Y",
+};
+
+// Left-hand combinations used only to initiate a word part
+static PREFICES: phf::Map<&'static str, &'static str> = phf::phf_map! {
+    // page 29 - occuring primarily at the beginning of the word, mostly in borrowings
+    "au" => "EA",
+    "eu" => "EU",
+
+    // page 33
+    "bi" => "PJI",
+    "di" => "TJI",
+    "gi" => "KJI",
+    "by" => "PEIAU",
+    "dy" => "TEIAU",
+    "gy" => "KEIAU",
+
+    // page 32
+    "b" => "PJ",
+    "d" => "TJ",
+    "g" => "KJ",
+
+    // page 34
+    "sz" => "TP",
+    "cz" => "PV",
+    "ż" => "TPJ",
+    "dż" => "PVJ",
+
+    // page 36
+    "c" => "ZS",
+    "dz" => "ZSJ",
+    "ch" => "KT",
+    "h" => "KTJ",
+    // Weird conflict with the dź sound, book mentions it as exception in PL, skipping in favor of shorter chord below
+    // "dzi" => "ZSJI",
+    "dzy" => "ZSEIAU",
+    "hi" => "KTJI",
+    "hy" => "KTEIAU",
+
+    // page 37
+    "rz" => "RJ",
+
+    // page 42
+    // NOTE(2022-11-16): I did not understand the expansion rule very well. I hope that I resolved the conflict with dzi correctly.
+    "dź" => "TJ~",
+    "dzi" => "TJI",
+    "dzie" => "TJEI",
+    "ć" => "T~",
+    "ci" => "TI",
+    "cie" => "TEI",
+    "ś" => "S~",
+    "si" => "SI",
+    "sie" => "SEI",
+    "ź" => "Z~",
+    "zi" => "ZI",
+    "zie" => "ZEI",
+
+
+};
+
+// Combinations That typically reside in the middle of a word part, but can
+// appear at the end.
+static INFICES: phf::Map<&'static str, &'static str> = phf::phf_map! {
+    // page 30
+    "ą" => "EAU",
+    "ę" => "EIA",
+    "ó" => "EIU",
+    "ia" => "IA",
+    "ie" => "EI",
+    "ią" => "JEAU",
+    "ię" => "JEIA",
+    "io" => "JAU",
+    "ió" => "JU",
+
+    // page 42
+    "ł" => "LJ",
+
+};
+
+// Right-hand combinations, typically terminating a word part.
+static SUFFICES: phf::Map<&'static str, &'static str> = phf::phf_map! {
+    // Page 44
+    "p" => "BW",
+    "f" => "WY",
+    "dz" => "CW",
+    "j" => "CB",
+
+    // Page 46
+    "d" => "BT",
+    "z" => "BS",
+    "k" => "BG",
+    "h" => "CBG",
+
+    // Page 48
+    "sz" => "SG",
+    "cz" => "GW",
+    "rz" => "CRB",
+    "ż" => "BSG",
+    "dż" => "BGW",
+
+    // Page 50
+    "m" => "CS",
+    "n" => "CL",
+};
+
+static SHORTCUTS: phf::Map<&'static str, &'static str> = phf::phf_map! {
+    // page 27 - 3 introductory Shortcuts
+    "ty" => "TY",
+    "to" => "TO",
+    "wy" => "VY",
+    "vy" => "VY",
+
+    // page 39
+    "my" => "KPY",
+};
+
 fn main() -> Result<(), ErrBox> {
     println!("Starting...");
 
