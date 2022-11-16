@@ -347,6 +347,7 @@ static LEFT_HAND_COMBOS: phf::Map<&'static str, &'static str> = phf::phf_map! {
 
     "pf" => "FP*",
     "sf" => "FS*",
+
 };
 
 // Combinations That typically reside in the middle of a word part, but can
@@ -426,6 +427,155 @@ static RIGHT_HAND_COMBOS: phf::Map<&'static str, &'static str> = phf::phf_map! {
     // Page 54
     "ł" => "LB",
 
+    // Page 105, 106, singles ommitted, handled from page 26 already
+    "zz" => "C",
+    "ts" => "C",
+    // "ds" => "C", // Coinflicts with native "ds"
+    "dc" => "C",
+    "tts" => "C",
+    "tc" => "C",
+
+    "rr" => "R",
+
+    "ll" => "L",
+    // "wl" => "L", // Conflicts with native "wl"
+
+    "bb" => "B",
+
+    "ss" => "S",
+    // "ws" => "S", // Conflicts with native "ws"
+
+    "gg" => "G",
+
+    "tt" => "T",
+    "th" => "T",
+    "dt" => "T",
+    "ght" => "T",
+    
+    "vv" => "V",
+
+    "rc" => "CR",
+    "cr" => "CR",
+
+    "nn" => "CL",
+    "lc" => "CL",
+    "wn" => "CL",
+    "gn" => "CL",
+    "cl" => "CL",
+
+    "bc" => "CB",
+
+    "mm" => "CS",
+    "sc" => "CS",
+
+    "ch" => "CG",
+    "kh" => "CG",
+
+    "ct" => "CT",
+    "tst" => "CT",
+
+    "ds" => "CW",
+    "wc" => "CW",
+    "cw" => "CW",
+
+    "rl" => "RL",
+
+    "rb" => "RB",
+    "br" => "RB",
+
+    "rs" => "RS",
+
+    "rg" => "RG",
+    "gr" => "RG",
+
+    "rt" => "RT",
+    "tr" => "RT",
+
+    "rw" => "RW",
+    "wr" => "RW",
+    "rv" => "RW",
+    "vr" => "RW",
+    "wf" => "RW",
+
+    "lb" => "LB",
+    "bl" => "LB",
+
+    "ls" => "LS",
+    "sl" => "LS",
+    "ws" => "LS",
+    "vs" => "LS",
+    "sk" => "LS",
+    "ks" => "LS",
+    "x" => "LS",
+    "cs" => "LS",
+
+    "lg" => "LG",
+    "gl" => "LG",
+    
+    "lt" => "LT",
+    "tl" => "LT",
+    "lth" => "LT",
+
+    "lw" => "LW",
+    "wl" => "LW",
+
+    "lv" => "LW",
+    "vl" => "LW",
+
+    "bs" => "BS",
+    "sb" => "BS",
+
+    "kk" => "BG",
+    // "wk" => "BG", // Conflicts with native wk
+
+    "dd" => "BT",
+    "bt" => "BT",
+    "tb" => "BT",
+
+    "pp" => "BW",
+    "bł" => "BW",
+    "łb" => "BW",
+
+    "bd" => "BO",
+    "db" => "BO",
+
+    "sch" => "SG",
+    "sh" => "SG",
+    // "ch(e)" => "SG", // Conflicts with native "ch"
+
+    "st" => "ST",
+    "ft" => "ST",
+
+    // "si" => "SW",
+
+    // "ś" => "SO",
+
+    "kt" => "GT",
+    "gt" => "GT",
+    // "ct" => "GT", // Conflicts with native "ct"
+    "tk" => "GT",
+
+    // "cz" => "GW",
+    // "cs" => "GW", // Conflicts with native "cs"
+    "tch" => "GW",
+    "gw" => "GW",
+    "wg" => "GW",
+    "kv" => "GW",
+    "vk" => "GW",
+    "kw" => "GW",
+    "wk" => "GW",
+
+    // "ci" => "TW",
+    "wt" => "TW",
+    "tw" => "TW",
+    "vt" => "TW",
+    "tv" => "TW",
+
+    // "ć" => "TO",
+
+    // "f" => "WY",
+    "ff" => "WY",
+    "ph" => "WY",
 };
 
 // Oddball shortcuts and expressions with dedicated chords
