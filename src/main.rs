@@ -347,6 +347,203 @@ static LEFT_HAND_COMBOS: phf::Map<&'static str, &'static str> = phf::phf_map! {
     "pf" => "FP*",
     "sf" => "FS*",
 
+    // page 121
+    "scj" => "ZSTJ",
+    "zdj" => "ZT",
+
+    "ckl" => "ZSKL",
+    "mdl" => "KTPL",
+    "mgl" => "KPLJ",
+    "pchl" => "KTPL",
+    "schl" => "SKTL",
+    "scl" => "SKL",
+    "sfl" => "SVL",
+    "skl" => "SKL",
+    "spl" => "SPL",
+    "stl" => "STL",
+    "szkl" => "ZSKL",
+    "szpl" => "ZSPL",
+    "tkl" => "KTL*",
+    "wgl" => "FKLJ",
+    "wkl" => "FKL",
+    "wpl" => "FPL",
+    "wśl" => "FSL",
+    "wszl" => "FTPL",
+    "wwl" => "FVL",
+    "wzl" => "FSL",
+    "zbl" => "ZPL",
+    "zgl" => "ZKL",
+    "zwl" => "ZVL",
+
+    // page 122
+    "mdł" => "KTPL",
+    "mgł" => "KPLJ",
+    "pchł" => "KTPL",
+    "schł" => "SKTL",
+    "skł" => "SKL",
+    "spł" => "SPL",
+    "stł" => "STL",
+    "szkł" => "ZSPL",
+    "wbł" => "FPLJ",
+    "wchł" => "FKTL",
+    "wgł" => "FKL",
+    "wkł" => "FKL",
+    "wpł" => "FPL",
+    "wsł" => "FSL",
+    "wtł" => "FTL",
+    "zbł" => "ZPL",
+    "zgł" => "ZKL",
+    "zmł" => "ZKPL",
+    "zwł" => "ZVL",
+
+    "schr" => "SKTR",
+    "sfr" => "SVR",
+    "sgr" => "SKRJ",
+    "skr" => "SKR",
+    "smr" => "SKPR",
+    "spr" => "SPR",
+    "str" => "STR",
+    "szkr" => "ZSKR",
+    "szpr" => "ZSPR",
+    "sztr" => "ZSTR",
+    "wbr" => "FPRJ",
+
+    // page 123
+    "wdr" => "FTRJ",
+    "wgr" => "FKRJ",
+    "wkr" => "FKR",
+    "wpr" => "FPR",
+    "wśr" => "FSR",
+    "wtr" => "FTR",
+    "wzr" => "FSR",
+    "zbr" => "ZPR",
+    "zdr" => "ZTR",
+    "zgr" => "ZKR",
+    "zmr" => "ZKPR",
+    "zwr" => "ZVR",
+
+    "schrz" => "SKTR",
+    "skrz" => "SKR",
+    "sprz" => "SPR",
+    "strz" => "STR",
+    "wgrz" => "FSKR",
+    "wkrz" => "FSKR",
+    "wprz" => "FPR",
+    "wtrz" => "FTR",
+    "zbrz" => "ZPR",
+    "zdrz" => "ZTR",
+    "zgrz" => "ZKR",
+
+    // page 124
+    "ckn" => "ZSKLR",
+    "ćpn" => "TPLR",
+    "czchn" => "KTPVLR",
+    "czkn" => "KPVLR",
+    "dźgn" => "KTLRJ",
+    "lgn" => "KVLR*",
+    "lśn" => "SVLR",
+    "mgn" => "KPLRJ",
+    "mkn" => "KPLR",
+    "pchn" => "KTPLR",
+    "psn" => "SPLR*",
+    "rżn" => "TPLRJ*",
+    "schn" => "SKTLR",
+    "skn" => "SKLR",
+    "tchn" => "KTLR*",
+    "tkn" => "KTLR*",
+    "wgn" => "FKLR",
+    "wsn" => "FSLR",
+    "wzn" => "FSLR",
+    "zgn" => "ZKLR",
+    "żgn" => "KTPLR",
+    "źgn" => "ZKLR",
+    "zmn" => "ZKPLR",
+    "krnąbr" => "KLREIARB",
+
+    // page 135
+    // "dzb" => "ZTP*", // Conflict with ZSP
+    "wzb" => "FSP",
+    "źdźb" => "ZTP~",
+    "zgb" => "ZKP",
+
+    "kszt" => "KTP*",
+    "mst" => "SKTP*",
+    "mść" => "SKTP*",
+    "wst" => "FST",
+    "wść" => "FST",
+    "wszt" => "FTP*",
+    "zst" => "ZST",
+
+    "bzd" => "ZTP*",
+    "bźdź" => "ZTP*",
+    "gwdz" => "ZSKV*",
+    "wzd" => "FST",
+    "wżd" => "FTP*",
+
+    "psk" => "SKP*",
+    "wsk" => "FSK",
+    "wzg" => "FSK",
+
+    "stch" => "SKT*",
+    "wsch" => "FSKT",
+
+    "wsp" => "FSP",
+    "wśp" => "FSP",
+
+    // page 136
+    "szczm" => "KTPV*",
+    "wdm" => "FKTP",
+    "wsm" => "FSKP",
+    "wzm" => "FSKP",
+    "zdm" => "ZKTP",
+
+    "bżdż" => "ZTPJ*",
+    "mszcz" => "KTPV",
+    "pszcz" => "TPV*",
+    "wszcz" => "FTPV",
+
+    "schw" => "SKTV",
+    "skw" => "SKV",
+    "stw" => "STV",
+    "szczw" => "TPV*",
+    "szkw" => "ZSKV",
+    "tkw" => "KTV",
+    "wśw" => "FSV",
+    "wzw" => "FSV",
+    "zdw" => "ZTV",
+    "zdzw" => "ZTW",
+    "zdźw" => "ZTW",
+    "zgw" => "ZKV",
+
+    "sks" => "SKV*",
+    "sps" => "SPV*",
+
+    "zbź" => "ZPV*",
+    "zbzi" => "ZPV*",
+
+    // page 141
+    "wzgl" => "FSKL",
+    "źdźbl" => "ZTPL",
+
+    "wspł" => "FSPL",
+    "wzdł" => "FSTL",
+    "źdźbł" => "ZTPL",
+
+    "lsnk" => "SKLR*",
+    "stchn" => "SKTLR*",
+
+    "bzdr" => "ZTPR",
+    "pstr" => "STPR",
+    "wskr" => "FSKR",
+    "wstr" => "FSTR",
+    "wzbr" => "FSPR",
+    "wzdr" => "FSTR",
+
+    // page 142
+    "bzdrz" => "ZTPR",
+    "pstrz" => "STPR",
+    "wskrz" => "FSKR",
+    "wstrz" => "FSTR",
 };
 
 // Combinations That typically reside in the middle of a word part, but can
@@ -1063,7 +1260,7 @@ static RIGHT_HAND_COMBOS: phf::Map<&'static str, &'static str> = phf::phf_map! {
     "chć" => "CGTO",
 
     "rzł" => "RLBS",
-    
+
     // "rgł" => "RLBG", // Conflict with RGW
 
     "drt" => "RLBT",
