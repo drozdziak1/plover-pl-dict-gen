@@ -714,7 +714,7 @@ static RIGHT_HAND_COMBOS: phf::Map<&'static str, &'static str> = phf::phf_map! {
     "dr" => "RBT",
     "rpt" => "RBT",
     "ptr" => "RBT",
-    
+
     "rp" => "RBW",
     "pr" => "RBW",
 
@@ -763,7 +763,7 @@ static RIGHT_HAND_COMBOS: phf::Map<&'static str, &'static str> = phf::phf_map! {
     "szl" => "LSG",
     "szk" => "LSG",
     "ksz" => "LSG",
-    
+
     "lst" => "LST",
     "lts" => "LST",
     "lft" => "LST",
@@ -861,13 +861,325 @@ static RIGHT_HAND_COMBOS: phf::Map<&'static str, &'static str> = phf::phf_map! {
 
     "czt" => "GTW",
     "czci" => "GTW",
-    
+
     "czć" => "GTO",
 
     "kf" => "GWY",
     "fk" => "GWY",
     "gf" => "GWY",
     "fg" => "GWY",
+
+    // page 112, 113, 114, 115
+    "rnc" => "CRLS",
+
+    "ntr" => "CRLT",
+    "ndr" => "CRLT",
+    "rtn" => "CRLT",
+
+    "rni" => "CRLW",
+    "drni" => "CRLW",
+    "lni" => "CRLW",
+
+    "rń" => "CRLO",
+    "ndrz" => "CRLO",
+    "drń" => "CRLO",
+    "lń" => "CRLO",
+
+    "mbr" => "CRBS",
+    "mpr" => "CRBS",
+    "mrz" => "CRBS",
+    "rzm" => "CRBS",
+
+    "chrz" => "CRBG",
+    "rzk" => "CRBG",
+    "krz" => "CRBG",
+    "krh" => "CRBG",
+    "rh" => "CRBG",
+
+    "drz" => "CRBT",
+    // "ndrz" => "CRBT", // conflict with CRLO
+    "jtr" => "CRBT",
+
+    "prz" => "CRBW",
+    "brz" => "CRBW",
+    "rzb" => "CRBW",
+
+    "skrz" => "CRSG",
+    "zgrz" => "CRSG",
+
+    "zdrz" => "CRST",
+    "strz" => "CRST",
+    "jstr" => "CRST",
+
+    "chtr" => "CRGT",
+
+    "rczm" => "CRGW",
+
+    "chrzt" => "CRGO",
+
+    "nz" => "CLBS",
+    "zn" => "CLBS",
+    "łm" => "CLBS",
+    "mł" => "CLBS",
+    "mbl" => "CLBS",
+
+    "jkl" => "CLBG",
+    "jgl" => "CLBG",
+    // "chł" => "CLBG", // Conflict with CGW
+    "hl" => "CLBG",
+    "lh" => "CLBG",
+
+    "nd" => "CLBT",
+    "dn" => "CLBT",
+    "ndl" => "CLBT",
+    "btn" => "CLBT",
+
+    "łni" => "CLBW",
+    "pni" => "CLBW",
+    "jni" => "CLBW",
+
+    "łń" => "CLBO",
+    "ńb" => "CLBO",
+    "pń" => "CLBO",
+    "jń" => "CLBO",
+
+    "nż" => "CLSG",
+    "nks" => "CLSG",
+    "nkc" => "CLSG",
+    "nsz" => "CLSG",
+    "nsk" => "CLSG",
+    "ngst" => "CLSG",
+    "ńsk" => "CLSG",
+    "żn" => "CLSG",
+    "nx" => "CLSG",
+
+    "ndz" => "CLST",
+    "nc" => "CLST",
+    "nstr" => "CLST",
+    "zdn" => "CLST",
+    "ndżl" => "CLST",
+    "nds" => "CLST",
+    "nts" => "CLST",
+    "nst" => "CLST",
+    "ndzl" => "CLST",
+    "nszt" => "CLST",
+
+    "śni" => "CLSW",
+    "żni" => "CLSW",
+    "lśni" => "CLSW",
+    "źni" => "CLSW",
+
+    "śń" => "CLSO",
+    "żń" => "CLSO",
+    "źń" => "CLSO",
+    "lśń" => "CLSO",
+
+    "nkt" => "CLGT",
+
+    "rncz" => "CLGW",
+    "ńszcz" => "CLGW",
+    "ńcz" => "CLGW",
+    "ngw" => "CLGW",
+    "ncz" => "CLGW",
+    "ndż" => "CLGW",
+
+    "nk" => "CLGY",
+    "kn" => "CLGY",
+
+    "ńdzi" => "CLTW",
+    "nci" => "CLTW",
+    "ndzi" => "CLTW",
+
+    "ńdź" => "CLTO",
+    "ńć" => "CLTO",
+    "ndź" => "CLTO",
+    "nć" => "CLTO",
+
+    "nf" => "CLWY",
+    "fn" => "CLWY",
+
+    "jsz" => "CBSG",
+    // "żm" => "CBSG", // Conflict with "KTP"
+    "mż" => "CBSG",
+    "jsk" => "CBSG",
+    "hm" => "CBSG",
+    "mk" => "CBSG",
+    "km" => "CBSG",
+
+    "dm" => "CBST",
+    "md" => "CBST",
+    "mbd" => "CBST",
+    "jst" => "CBST",
+    "jts" => "CBST",
+
+    "jsi" => "CBSW",
+
+    "jś" => "CBSO",
+
+    "jc" => "CBSY",
+    "js" => "CBSY",
+    "jsc" => "CBSY",
+    "jm" => "CBSY",
+    "jz" => "CBSY",
+
+    "chd" => "CBGT",
+    "hd" => "CBGT",
+
+    "jk" => "CBGY",
+    "hk" => "CBGY",
+
+    "jtv" => "CBTW",
+    "jdzi" => "CBTW",
+
+    "jdź" => "CBTO",
+
+    "jf" => "CBWY",
+
+    "gmat" => "CSGT",
+    "chc" => "CSGT",
+
+    "schł" => "CSGW",
+    "dżm" => "CSGW",
+    "jszcz" => "CSGW",
+    "mcz" => "CSGW",
+    "czm" => "CSGW",
+
+    "chś" => "CSGO", // lol
+
+    "mstw" => "CSTW",
+    "mi" => "CSTW",
+    "jści" => "CSTW",
+    "dźstw" => "CSTW",
+
+    "mć" => "CSTO",
+    "ćm" => "CSTO",
+    "jść" => "CSTO",
+    "jstw" => "CSTO",
+
+    "mf" => "CSWY",
+    "fm" => "CSWY",
+
+    "chci" => "CGTW",
+    "chć" => "CGTO",
+
+    "rzł" => "RLBS",
+    
+    // "rgł" => "RLBG", // Conflict with RGW
+
+    "drt" => "RLBT",
+
+    "rż" => "RBSG",
+
+    "zdr" => "RBST",
+
+    "rzi" => "RBSW",
+    // "rzł" => "RBSW", // Conflict with RLBS (Whyyyyyy???)
+
+    "rź" => "RBSO",
+
+    "dżr" => "RBGW",
+
+    // "ptr" => "RBTW", // Conflict with RBT
+    "rdzi" => "RBTW",
+    // "rpt" => "RBTW", // Conflict with RBT
+    "rdw" => "RBTW",
+
+    "rdź" => "RBTO",
+
+    "kstr" => "RSGT",
+    "sztr" => "RSGT",
+    "rszt" => "RSGT",
+
+    "rszcz" => "RSGW",
+
+    "rsk" => "RSGY",
+    "skr" => "RSGY",
+    "rx" => "RSGY",
+    "rks" => "RSGY",
+
+    "rstw" => "RSTW",
+    "rści" => "RSTW",
+
+    "rść" => "RSTO",
+
+    "rkł" => "RGWY",
+
+    "lż" => "LBSG",
+    "łż" => "LBSG",
+    "żl" => "LBSG",
+    "szł" => "LBSG",
+    "łsz" => "LBSG",
+
+    "stł" => "LBST",
+    "łdz" => "LBST",
+    "łst" => "LBST",
+
+    "łzł" => "LBSW",
+    "łźl" => "LBSW",
+    "lzl" => "LBSW",
+    "lzi" => "LBSW",
+
+    "źl" => "LBSO",
+    "lź" => "LBSO",
+
+    "łkw" => "LBGW",
+    "łcz" => "LBGW",
+    "łkł" => "LBGW",
+
+    "łk" => "LBGY",
+    "kł" => "LBGY",
+
+    "łci" => "LBTW",
+
+    "łć" => "LBTO",
+    "ld" => "LBTO",
+    "dl" => "LBTO",
+
+    "lszcz" => "LSGW",
+    "szczk" => "LSGW",
+
+    "lsk" => "LSGY",
+    "skl" => "LSGY",
+    // "wsk" => "LSGY", // Conflict with LSW
+    "lks" => "LSGY",
+
+    "lstw" => "LSTW",
+    "ństw" => "LSTW",
+    "wstw" => "LSTW",
+    "nstw" => "LSTW",
+    "nctw" => "LSTW",
+
+    "lkł" => "LGWY",
+
+    "żd" => "BSGT",
+
+    "psz" => "BSGW",
+    "żdż" => "BSGW",
+    "żw" => "BSGW",
+
+    "psk" => "BSGY",
+    "bsk" => "BSGY",
+    "żk" => "BSGY",
+
+    "ździ" => "BSTW",
+    "pstw" => "BSTW",
+    "pst" => "BSTW",
+    "wdzi" => "BSTW",
+    // "dsi" => "BSTW", // Conflict with STW
+    "źci" => "BSTW",
+    "bstw" => "BSTW",
+
+    "źdź" => "BSTO",
+    "źć" => "BSTO",
+    "wdź" => "BSTO",
+    // "dś" => "BSTO", // Conflict with STO
+
+    "pk" => "BGWY",
+    "kp" => "BGWY",
+    "pcz" => "BGWY",
+
+    "żci" => "SGTW",
+    "żć" => "SGTO",
 };
 
 // Oddball shortcuts and expressions with dedicated chords
