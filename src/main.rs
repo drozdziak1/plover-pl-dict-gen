@@ -8,7 +8,6 @@ static OUT_FILE_PATH: &'static str = "out.txt";
 
 pub type ErrBox = Box<dyn std::error::Error>;
 
-
 // Left-hand combinations used only to initiate a word part
 static LEFT_HAND_COMBOS: phf::Map<&'static str, &'static str> = phf::phf_map! {
     // page 26
@@ -427,7 +426,12 @@ static RIGHT_HAND_COMBOS: phf::Map<&'static str, &'static str> = phf::phf_map! {
     // Page 54
     "ł" => "LB",
 
-    // Page 105, 106, singles ommitted, handled from page 26 already
+    // NOTE: The right-side combinations include the singles from this
+    // point, these are commented out in favor of the definitions
+    // earlier in the book (they coincide anyway). Other types of
+    // conflicts conflicts are explicitly indicated in comments.
+
+    // Page 105, 106
     "zz" => "C",
     "ts" => "C",
     // "ds" => "C", // Coinflicts with native "ds"
@@ -451,7 +455,7 @@ static RIGHT_HAND_COMBOS: phf::Map<&'static str, &'static str> = phf::phf_map! {
     "th" => "T",
     "dt" => "T",
     "ght" => "T",
-    
+
     "vv" => "V",
 
     "rc" => "CR",
@@ -460,7 +464,7 @@ static RIGHT_HAND_COMBOS: phf::Map<&'static str, &'static str> = phf::phf_map! {
     "nn" => "CL",
     "lc" => "CL",
     "wn" => "CL",
-    "gn" => "CL",
+    // "gn" => "CL", // Conflicts with native "gn"
     "cl" => "CL",
 
     "bc" => "CB",
@@ -511,7 +515,7 @@ static RIGHT_HAND_COMBOS: phf::Map<&'static str, &'static str> = phf::phf_map! {
 
     "lg" => "LG",
     "gl" => "LG",
-    
+
     "lt" => "LT",
     "tl" => "LT",
     "lth" => "LT",
@@ -539,7 +543,7 @@ static RIGHT_HAND_COMBOS: phf::Map<&'static str, &'static str> = phf::phf_map! {
     "bd" => "BO",
     "db" => "BO",
 
-    "sch" => "SG",
+    // "sch" => "SG", // Conflicts with native "sch"
     "sh" => "SG",
     // "ch(e)" => "SG", // Conflicts with native "ch"
 
@@ -576,11 +580,299 @@ static RIGHT_HAND_COMBOS: phf::Map<&'static str, &'static str> = phf::phf_map! {
     // "f" => "WY",
     "ff" => "WY",
     "ph" => "WY",
+
+    // page 108, 109, 110
+    "rn" => "CRL",
+    "nr" => "CRL",
+    "ln" => "CRL",
+    "nl" => "CRL",
+
+    // "rz" => "CRB",
+    // "ż" => "CRB", // Conflict with page 48?
+
+    "rm" => "CRS",
+    "mr" => "CRS",
+
+    "rch" => "CRG",
+    "chr" => "CRG",
+
+    "trz" => "CRT",
+    "rzt" => "CRT",
+
+    "rdz" => "CRW",
+
+    "jl" => "CLB",
+    "łc" => "CLB",
+    "jn" => "CLB",
+    "bn" => "CLB",
+    "łn" => "CLB",
+    "pn" => "CLB",
+    "jł" => "CLB",
+
+    "ns" => "CLS",
+    "sn" => "CLS",
+    "lm" => "CLS",
+    "ml" => "CLS",
+    "sm" => "CLS",
+    "ms" => "CLS",
+    "mn" => "CLS",
+    "nm" => "CLS",
+
+    "ng" => "CLG",
+    "gn" => "CLG",
+    "lch" => "CLG",
+    "chl" => "CLG",
+    "nkh" => "CLG",
+
+    "nt" => "CLT",
+    "nth" => "CLT",
+    "tn" => "CLT",
+    "ctl" => "CLT",
+
+    "ldz" => "CLW",
+    // "ni" => "CLW",
+    "wni" => "CLW",
+    "nw" => "CLW",
+    "vln" => "CLW",
+    "vn" => "CLW",
+    "nv" => "CLW",
+
+    // "ń" => "CLO",
+    "wń" => "CLO",
+
+    "zm" => "CBS",
+    "mz" => "CBS",
+    "mp" => "CBS",
+    "mpf" => "CBS",
+    "mb" => "CBS",
+    "nb" => "CBS",
+
+    "jch" => "CBG",
+    "jg" => "CBG",
+    "bch" => "CBG",
+    // "h" => "CBG",
+    "ck" => "CBG",
+    "tsk" => "CBG",
+    "jh" => "CBG",
+
+    "jt" => "CBT",
+    "jd" => "CBT",
+
+    "jw" => "CBW",
+    "cp" => "CBW",
+    "jp" => "CBW",
+    "jb" => "CBW",
+    "tsp" => "CBW",
+    "jv" => "CBW",
+
+    "gm" => "CSG",
+    "mg" => "CSG",
+    "chm" => "CSG",
+    "mch" => "CSG",
+    "msz" => "CSG",
+    "sch" => "CSG",
+
+    "tm" => "CST",
+    "mt" => "CST",
+    "mpt" => "CST",
+    "mst" => "CST",
+    "stm" => "CST",
+
+    "zdz" => "CSW",
+    "msi" => "CSW",
+
+    "mś" => "CSO",
+    "śm" => "CSO",
+
+    "cht" => "CGT",
+
+    "chw" => "CGW",
+    "gdz" => "CGW",
+    "chcz" => "CGW",
+    "chł" => "CGW",
+    "chv" => "CGW",
+
+    "ctw" => "CTW",
+    "dztw" => "CTW",
+    "ctv" => "CTW",
+
+    "rł" => "RLB",
+
+    "rls" => "RLS",
+
+    "ltr" => "RLT",
+
+    // "rz" => "RBS", // r + z, conflicts with the ż sound written "rz"
+    "zr" => "RBS",
+    "rps" => "RBS",
+
+    "rk" => "RBG",
+    "kr" => "RBG",
+    // "cr" => "RBG", // Conflicts with native "cr"
+
+    "rd" => "RBT",
+    "dr" => "RBT",
+    "rpt" => "RBT",
+    "ptr" => "RBT",
+    
+    "rp" => "RBW",
+    "pr" => "RBW",
+
+    "rsz" => "RSG",
+
+    "rst" => "RST",
+    "str" => "RST",
+    "rts" => "RST",
+
+    "ktr" => "RGT",
+    "rkt" => "RGT",
+
+    "rgł" => "RGW",
+
+    "rci" => "RTW",
+
+    "rć" => "RTO",
+
+    "rf" => "RWY",
+    "fr" => "RWY",
+
+    "sł" => "LBS",
+    "zł" => "LBS",
+    "łz" => "LBS",
+    "lz" => "LBS",
+    "zl" => "LBS",
+
+    "gł" => "LBG",
+    "łg" => "LBG",
+    "błk" => "LBG",
+    "blk" => "LBG",
+
+    "łt" => "LBT",
+    "tł" => "LBT",
+    "dł" => "LBT",
+    "łd" => "LBT",
+
+    "pł" => "LBW",
+    "łp" => "LBW",
+    "pl" => "LBW",
+    "lp" => "LBW",
+    "łw" => "LBW",
+    "łl" => "LBW",
+
+    "lsz" => "LSG",
+    "szl" => "LSG",
+    "szk" => "LSG",
+    "ksz" => "LSG",
+    
+    "lst" => "LST",
+    "lts" => "LST",
+    "lft" => "LST",
+    "kst" => "LST",
+    "xt" => "LST",
+
+    "śli" => "LSW",
+    "skv" => "LSW",
+    "vsk" => "LSW",
+    "skw" => "LSW",
+    "wsk" => "LSW",
+
+    "śl" => "LSO",
+
+    "lcz" => "LGW",
+    "lgł" => "LGW",
+
+    "lk" => "LGY",
+    "kl" => "LGY",
+
+    "lf" => "LWY",
+    "fl" => "LWY",
+
+    "zg" => "BSG",
+    "gz" => "BSG",
+    // "ż" => "BSG",
+    "żb" => "BSG",
+    "bsz" => "BSG",
+    "szb" => "BSG",
+    "ższ" => "BSG",
+
+    "zd" => "BST",
+    "bst" => "BST",
+    "wd" => "BST",
+
+    "sp" => "BSW",
+    "ps" => "BSW",
+    "zw" => "BSW",
+    "źw" => "BSW",
+
+    "źb" => "BSO",
+    "śb" => "BSO",
+
+    "zb" => "BSY",
+    "bz" => "BSY",
+
+    "gd" => "BGT",
+    "dk" => "BGT",
+
+    // "dż" => "BGW",
+    "czb" => "BGW",
+    "dżdż" => "BGW",
+    "czk" => "BGW",
+    "kcz" => "BGW",
+
+    // "dzi" => "BTW",
+    "tp" => "BTW",
+    // "wd" => "BTW", // WTF? Mysterious conflict with BST
+    "bci" => "BTW",
+    "pci" => "BTW",
+    "pt" => "BTW",
+    "vd" => "BTW",
+    "dv" => "BTW",
+
+    // "dź" => "BTO",
+    "bć" => "BTO",
+    "pć" => "BTO",
+    "dźb" => "BTO",
+
+
+    "szt" => "SGT",
+
+    "szcz" => "SGW",
+    "ksi" => "SGW",
+    "szw" => "SGW",
+    // "skw" => "SGW", // Conflicts with  LSW
+    // "wsk" => "SGW",
+    // "skv" => "SGW",
+
+    "kś" => "SGO",
+
+    "ści" => "STW",
+    "dsi" => "STW",
+    "wci" => "STW",
+    "zci" => "STW",
+
+    "ść" => "STO",
+    "wć" => "STO",
+    "dś" => "STO",
+
+    "sf" => "SWY",
+    "fs" => "SWY",
+    "stw" => "SWY",
+    "stv" => "SWY",
+
+    "czt" => "GTW",
+    "czci" => "GTW",
+    
+    "czć" => "GTO",
+
+    "kf" => "GWY",
+    "fk" => "GWY",
+    "gf" => "GWY",
+    "fg" => "GWY",
 };
 
 // Oddball shortcuts and expressions with dedicated chords
 static SHORTCUTS: phf::Map<&'static str, &'static str> = phf::phf_map! {
-    // page 27 
+    // page 27
     "ty" => "TY",
     "to" => "TO",
     "wy" => "VY",
