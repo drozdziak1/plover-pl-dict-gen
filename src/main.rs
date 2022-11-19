@@ -1509,8 +1509,8 @@ static PREFIXES: phf::Map<&'static str, &'static str> = phf::phf_map! {
     "ze" => "ZE*",
 };
 
-static NULL_INFIX: &'static str = "XF-OY";
-static SPACING_INFIX: &'static str = "XF*OY";
+static NULL_INFIX: &'static str = "XF-OY"; // Base for other infixes
+static SPACING_INFIX: &'static str = "XF*OY"; // Forces space, e.g. if you make a prefix by mistake where you wanted a preposition
 
 static SUFFIXES: phf::Map<&'static str, &'static str> = phf::phf_map! {
     // page 154, 155, 156, 157, 158
@@ -1981,7 +1981,69 @@ static SHORTCUTS: phf::Map<&'static str, &'static str> = phf::phf_map! {
     "ze" => "ZE",
     "ku" => "KU",
 
+    // page 220
+    // "ja" => "JA",
+    // "mnie" => "KPLRE",
+    "mię" => "KPEIA",
+    // "mi" => "KPI",
+    // "mną" => "KPEAU",
 
+    "sam" => "SACS",
+    "sama" => "SACSOY",
+    "same" => "SACSTO",
+    "sami" => "SACSWY",
+    "samo" => "SACSO",
+
+    // "my" => "KPY",
+    // "nas" => "LRAS",
+    // "nam" => "LRACS",
+    // "nami" => "LRACSY",
+
+    // "ty" => "TY",
+    "cię" => "TEIA",
+    "ciebie" => "TEBTO",
+    "ci" => "TI",
+    "tobie" => "TAUBTO",
+    "tobą" => "TAUBO",
+
+    "se" => "SE",
+    "się" => "SEIA",
+    "siebie" => "SEBTO",
+    "sobie" => "SAUBTO",
+    "sobą" => "SAUBO",
+
+    // "wy" => "VY",
+    "was" => "VAS",
+    "wam" => "VACS",
+    "wami" => "VACSY",
+
+    "on" => "AUCL",
+    "ona" => "AUCLOY",
+    "ono" => "AUCLO",
+    "go" => "KJO",
+    "jego" => "JEGO",
+    "niego" => "LREGO",
+    "jej" => "JECB",
+    "niej" => "LRECB",
+    "mu" => "KPU",
+    "jemu" => "JECSW",
+    "niemu" => "LRECSW",
+    "ją" => "JEAU",
+    "nią" => "LREAU",
+    "je" => "JE",
+    // "nie" => "LRE",
+    "nim" => "LRICS",
+    // "niej" => "LRECB",
+
+    "oni" => "AUCLY",
+    "one" => "AUCLTO",
+    "ich" => "ICG",
+    "nich" => "LRICG",
+    "im" => "ICS",
+    // "nim" => "LRICS",
+    // "je" => "JE",
+    // "nie" => "LRE",
+    "nimi" => "LRICSY",
 };
 
 fn main() -> Result<(), ErrBox> {
