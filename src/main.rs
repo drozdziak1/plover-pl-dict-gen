@@ -1501,7 +1501,16 @@ static PREFIXES: phf::Map<&'static str, &'static str> = phf::phf_map! {
     "uni" => "*UCLY",
     // "vice" => "V*ICO", // I very rarely see people write "vicemistrz", "vicedyrektor", "wice" feels more common
     "wice" => "V*ICO",
+
+    // page 208
+    "w" => "V*",
+    "we" => "VE*",
+    "z" => "Z*",
+    "ze" => "ZE*",
 };
+
+static NULL_INFIX: &'static str = "XF-OY";
+static SPACING_INFIX: &'static str = "XF*OY";
 
 static SUFFIXES: phf::Map<&'static str, &'static str> = phf::phf_map! {
     // page 154, 155, 156, 157, 158
@@ -1964,6 +1973,15 @@ static SHORTCUTS: phf::Map<&'static str, &'static str> = phf::phf_map! {
     "znad" => "ZLRAUBT",
     "znade" => "ZLRAUBTO",
     "zza" => "ZSA",
+
+    // page 207
+    "w" => "V-W",
+    "we" => "VE",
+    "z" => "Z-BS",
+    "ze" => "ZE",
+    "ku" => "KU",
+
+
 };
 
 fn main() -> Result<(), ErrBox> {
