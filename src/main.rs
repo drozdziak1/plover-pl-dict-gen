@@ -2443,6 +2443,56 @@ static SHORTCUTS: phf::Map<&'static str, &'static str> = phf::phf_map! {
     "zrobi" => "ZRAUBTW", // Changed from zrobić/ZRAUBTO
 };
 
+static SPECIAL_CHARS: phf::Map<&'static str, &'static str> = phf::map!{
+    // page 302
+    "," => "V-B",
+    "." => "P-L",
+    "?" => "V-L",
+    "!" => "P-B",
+    ";" => "VR-RB",
+    ":" => "VR*RB",
+    "\\" => "PL-RB",
+    "/" => "VR-CL",
+    "\"" => "KPL-CLS",
+    "(" => "STVR-RBGW",
+    ")" => "ZKPL-CLST",
+    "-" => "ST-GW",
+    "--" => "ST*GW",
+    "..." => "ZK-ST",
+    "@" => "PVLR-CRLB",
+    "{" => "KTPV-LBSG",
+    "}" => "ZKST-SGTW",
+    "'" => "LR-CR",
+    "[" => "KTPV-LBSG",
+    "]" => "KTPV*LBSG",
+    "~.~" => "X*O", // Like pornhub.com
+
+    // page 303
+    // TODO(2022-11-21): Use proper Plover syntax for these actions
+    "<new page>" => "P-CRLBSGTW",
+    "<new line>" => "L-CRLBSGTW",
+    "<tab>" => "T-CRLBSGTW",
+    "<new paragraph>" => "R-CRLBSGTW",
+
+    // page 304
+    // TODO(2022-11-21): Fill in with actions in Plover's
+    // format. Needs to go to a new-line, tab in, put speaker title
+    // and surname, colon and space
+    "<speaker1>" => "ZSKTVLR-C",
+    "<speaker2>" => "ZSKTPVLR-L",
+    "<speaker3>" => "ZKSTPVLR-S",
+    "<speaker4>" => "ZKSTPVLR-T",
+    "<speaker5>" => "ZKSTPVLR-O",
+    "<speaker6>" => "ZKSTPVLR-R",
+    "<speaker7>" => "ZKSTPVLR-B",
+    "<speaker8>" => "ZKSTPVLR-G",
+    "<speaker9>" => "ZKSTPVLR-W",
+    "<speaker10>" => "ZKSTPVLR-Y",
+};
+
+
+
+
 fn main() -> Result<(), ErrBox> {
     println!("Starting...");
 
