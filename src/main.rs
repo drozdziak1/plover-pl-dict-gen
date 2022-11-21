@@ -1,4 +1,5 @@
 mod dict_lookup;
+mod chord;
 
 use std::collections::BTreeSet;
 use std::fs::File;
@@ -58,3 +59,4 @@ fn main() -> Result<(), ErrBox> {
 
     Ok(())
 }
+
