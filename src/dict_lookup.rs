@@ -2072,7 +2072,7 @@ pub static SHORTCUTS: phf::Map<&'static str, &'static str> = phf::phf_map! {
     "nasz" => "LRASG",
     "nasza" => "LRASGOY",
     "naszą" => "LRASGTW",
-    "nasze`" => "LRASGTO",
+    "nasze" => "LRASGTO",
     "naszego" => "LRASGO",
     "naszej" => "LRACBSG",
     "naszemu" => "LRACSGW",
@@ -2204,7 +2204,7 @@ pub static SHORTCUTS: phf::Map<&'static str, &'static str> = phf::phf_map! {
     "jakiej" => "KJECB",
     "jakiemu" => "KJECSW",
     "jakim" => "KJICS",
-    "jakimi" => "`KJICSY",
+    "jakimi" => "KJICSY",
 
     "niejacy" => "ZSLRJI",
     "niejaka" => "KLRJA",
@@ -2216,7 +2216,7 @@ pub static SHORTCUTS: phf::Map<&'static str, &'static str> = phf::phf_map! {
     "niejakiej" => "KLRJECB",
     "niejakiemu" => "KLRJECSW",
     "niejakim" => "KLRJICS",
-    "niejakimi" => "`KLRJICSY",
+    "niejakimi" => "KLRJICSY",
 
     "czyi" => "PVIY",
     "czyich" => "PVJICG",
