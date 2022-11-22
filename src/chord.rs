@@ -114,18 +114,26 @@ impl Chord {
 
     /// Sum this chord with another, failing if an already pressed key is pressed in other
     pub fn merge(&mut self, other: &Chord) -> Result<(), ErrBox> {
+        if self
+            .as_vec()
+            .into_iter()
+            .zip(other.as_vec().into_iter())
+            .any(|(self_key, other_key)| *self_key && *other_key)
+        {
+            return Err(format!(
+                "Conflicting entries between {} and {}",
+                self.to_string(),
+                other.to_string()
+            )
+            .into());
+        }
+
         for (self_key, other_key) in self
             .as_mut_vec()
             .into_iter()
             .zip(other.as_vec().into_iter())
         {
-            if *self_key && *other_key {
-                return Err(
-                    format!("Conflicting entries between {:?}, and {:?}", self, other).into(),
-                );
-            } else {
-                *self_key = *self_key ^ other_key;
-            }
+            *self_key = *self_key ^ other_key;
         }
         Ok(())
     }
@@ -297,8 +305,7 @@ impl FromStr for Chord {
 
 impl ToString for Chord {
     fn to_string(&self) -> String {
-
-	#[deny(unused_variables)]
+        #[deny(unused_variables)]
         let Self {
             x,
             f,
@@ -329,107 +336,107 @@ impl ToString for Chord {
             y,
         } = self;
 
-	let mut ret = String::new();
+        let mut ret = String::new();
 
-	let mut needs_hyphen = true;
-	
-	if *x {
-	    ret.push('X');
-	}
-	if *f {
-	    ret.push('F');
-	}
-	if *z {
-	    ret.push('Z');
-	}
-	if *s_left {
-	    ret.push('S');
-	}
-	if *k {
-	    ret.push('K');
-	}
-	if *t_left {
-	    ret.push('T');
-	}
-	if *p {
-	    ret.push('P');
-	}
-	if *v {
-	    ret.push('V');
-	}
-	if *l_left {
-	    ret.push('L');
-	}
-	if *r_left {
-	    ret.push('R');
-	}
+        let mut needs_hyphen = true;
 
-	if *j {
-	    ret.push('J');
-	    needs_hyphen = false;
-	}
-	if *e {
-	    ret.push('E');
-	    needs_hyphen = false;
-	}
-	if *tilde {
-	    ret.push('~');
-	    needs_hyphen = false;
-	}
-	if *asterisk {
-	    ret.push('*');
-	    needs_hyphen = false;
-	}
-	if *i {
-	    ret.push('I');
-	    needs_hyphen = false;
-	}
-	if *a {
-	    ret.push('A');
-	    needs_hyphen = false;
-	}
-	if *u {
-	    ret.push('U');
-	    needs_hyphen = false;
-	}
+        if *x {
+            ret.push('X');
+        }
+        if *f {
+            ret.push('F');
+        }
+        if *z {
+            ret.push('Z');
+        }
+        if *s_left {
+            ret.push('S');
+        }
+        if *k {
+            ret.push('K');
+        }
+        if *t_left {
+            ret.push('T');
+        }
+        if *p {
+            ret.push('P');
+        }
+        if *v {
+            ret.push('V');
+        }
+        if *l_left {
+            ret.push('L');
+        }
+        if *r_left {
+            ret.push('R');
+        }
 
-	// if needs_hyphen is still set, we need to disambiguate 
-	if needs_hyphen {
-	    ret.push('-');
-	}
+        if *j {
+            ret.push('J');
+            needs_hyphen = false;
+        }
+        if *e {
+            ret.push('E');
+            needs_hyphen = false;
+        }
+        if *tilde {
+            ret.push('~');
+            needs_hyphen = false;
+        }
+        if *asterisk {
+            ret.push('*');
+            needs_hyphen = false;
+        }
+        if *i {
+            ret.push('I');
+            needs_hyphen = false;
+        }
+        if *a {
+            ret.push('A');
+            needs_hyphen = false;
+        }
+        if *u {
+            ret.push('U');
+            needs_hyphen = false;
+        }
 
-	if *c {
-	    ret.push('C');
-	}
-	if *r_right {
-	    ret.push('R');
-	}
-	if *l_right {
-	    ret.push('L');
-	}
-	if *b {
-	    ret.push('B');
-	}
-	if *s_right {
-	    ret.push('S');
-	}
-	if *g {
-	    ret.push('G');
-	}
-	if *t_right {
-	    ret.push('T');
-	}
-	if *w {
-	    ret.push('W');
-	}
-	if *o {
-	    ret.push('O');
-	}
-	if *y {
-	    ret.push('Y');
-	}
+        // if needs_hyphen is still set, we need to disambiguate
+        if needs_hyphen {
+            ret.push('-');
+        }
 
-	ret
+        if *c {
+            ret.push('C');
+        }
+        if *r_right {
+            ret.push('R');
+        }
+        if *l_right {
+            ret.push('L');
+        }
+        if *b {
+            ret.push('B');
+        }
+        if *s_right {
+            ret.push('S');
+        }
+        if *g {
+            ret.push('G');
+        }
+        if *t_right {
+            ret.push('T');
+        }
+        if *w {
+            ret.push('W');
+        }
+        if *o {
+            ret.push('O');
+        }
+        if *y {
+            ret.push('Y');
+        }
+
+        ret
     }
 }
 
@@ -461,15 +468,15 @@ mod tests {
 
     #[test]
     fn test_chord_parser_recognizes_whole_set() -> Result<(), ErrBox> {
-	let full_str = "XFZSKTPVLRJE~*IAUCRLBSGTWOY";
-	let parsed: Chord = full_str.parse()?;
+        let full_str = "XFZSKTPVLRJE~*IAUCRLBSGTWOY";
+        let parsed: Chord = full_str.parse()?;
 
-	let full_steno = Chord::full_steno_order();
+        let full_steno = Chord::full_steno_order();
 
-	// Cross validate struct and generated string
-	assert_eq!(parsed, full_steno);
-	assert_eq!(&full_steno.to_string(), full_str);
+        // Cross validate struct and generated string
+        assert_eq!(parsed, full_steno);
+        assert_eq!(&full_steno.to_string(), full_str);
 
-	Ok(())
+        Ok(())
     }
 }
