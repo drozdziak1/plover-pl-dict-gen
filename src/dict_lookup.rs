@@ -8,6 +8,7 @@ pub static LEFT_HAND_COMBOS: phf::Map<&'static str, &'static str> = phf::phf_map
     "z" => "Z",
     "s" => "S",
     "k" => "K",
+    "q" => "K*", // Not in book, showed up in input dictionary
     "t" => "T",
     "p" => "P",
     "v" => "V",
