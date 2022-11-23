@@ -1598,7 +1598,8 @@ pub static SUFFIXES: phf::Map<&'static str, &'static str> = phf::phf_map! {
     "je" => "XFJE",
     "jom" => "XFJAUCS",
     "jach" => "XFJACG",
-    "jami" => "JĘ",
+    "jami" => "XFJACSY",
+    "ję" => "XFJEAU",
     "ka" => "XFKA",
     "kach" => "XFKACG",
     "kami" => "XFKACSY",
@@ -1902,7 +1903,7 @@ pub static SHORTCUTS: phf::Map<&'static str, &'static str> = phf::phf_map! {
     "pójść" => "PEIUSTO",
     "pójdę" => "PEIUTO",
     "pójdziesz" => "PEIUSGT",
-    "pójdzie" => "PEIUTE",
+    "pójdzie" => "PEIUCSO", // Book lists PEIUTE which is impossible
     "pójdziemy" => "PEIUCSY",
     "pódziecie" => "PEIUCTO",
     "pójdą" => "PEIUBTO",
@@ -1961,7 +1962,7 @@ pub static SHORTCUTS: phf::Map<&'static str, &'static str> = phf::phf_map! {
     "spomiędzy" => "SKPECY",
     "sponad" => "SPLRABT",
     "spośród" => "SPRUT",
-    "spoza" => "SPOSOY",
+    "spoza" => "SPAUSOY", // Book lists SPOSOY which is impossible
     "sprzed" => "SPREBT",
     "u" => "U",
     "wbrew" => "FPREW",
@@ -2171,8 +2172,8 @@ pub static SHORTCUTS: phf::Map<&'static str, &'static str> = phf::phf_map! {
     "owymi" => "AUCSY",
 
     "och" => "*AUCG", // Like "Och Karol"
-    "ach" => "*ACG", 
-    "ech" => "*ECG",   
+    "ach" => "*ACG",
+    "ech" => "*ECG",
 
     // "kto" => "KTO",
     "kogo" => "KAUGO",
@@ -2437,7 +2438,7 @@ pub static SHORTCUTS: phf::Map<&'static str, &'static str> = phf::phf_map! {
     "zrobi" => "ZRAUBTW", // Changed from zrobić/ZRAUBTO
 };
 
-pub static SPECIAL_CHARS: phf::Map<&'static str, &'static str> = phf::phf_map!{
+pub static SPECIAL_CHARS: phf::Map<&'static str, &'static str> = phf::phf_map! {
     // page 302
     "," => "V-B",
     "." => "P-L",
