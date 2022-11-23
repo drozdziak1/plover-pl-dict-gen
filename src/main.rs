@@ -255,6 +255,7 @@ fn main() -> Result<(), ErrBox> {
                 }
 
                 distinct_roots += 1;
+                info!("New word root: {} => {}", word_root, root_chords.join("/"));
                 out_dict.insert(word_root.clone(), root_chords.join("/"));
             }
         }
