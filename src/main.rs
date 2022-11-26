@@ -28,10 +28,9 @@ fn main() -> Result<(), ErrBox> {
 
         stdin.read_line(&mut line_buf)?;
 
-        match gen.gen_word_chords(&line_buf) {
+        match gen.add_word_root(&line_buf) {
             Ok(chords) => {
-                gen.add_word(&line_buf)?;
-                println!("Chords: {}", chords.to_string(),);
+		println!("Chords: {}", chords.to_string());
             }
             Err(e) => {
                 error!("{}", e.to_string());

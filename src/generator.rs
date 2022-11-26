@@ -60,7 +60,7 @@ impl Generator {
                     chord.parse::<Chord>().map(|ch| {
                         (
                             LenSortableString(word.to_string()),
-                            vec![ChordSeqItem::Plain(chord.to_string(), ch)].into(),
+                            vec![ChordSeqItem::RootChord(chord.to_string(), ch)].into(),
                         )
                     })
                 })
@@ -76,10 +76,22 @@ impl Generator {
         })
     }
 
-    pub fn add_word(&mut self, word: &str) -> Result<(), ErrBox> {
+    pub fn add_word_root(&mut self, word: &str) -> Result<ChordSequence, ErrBox> {
+        let chords = self.gen_word_chords(word)?;
+        let mut root_chords = chords.clone();
+        root_chords.items = chords
+            .items
+            .iter()
+            .filter_map(|item| match item {
+                &ChordSeqItem::KnownRootEntry(_, _) | &ChordSeqItem::RootChord(_, _) => Some(item),
+                _other => None,
+            })
+            .cloned()
+            .collect();
+
         self.word_root_dict
-            .insert(word.into(), self.gen_word_chords(word)?);
-        Ok(())
+            .insert(chords.get_word().into(), root_chords.clone());
+        Ok(chords)
     }
 
     /// Returns Err on sanitization problems
@@ -98,7 +110,6 @@ impl Generator {
         //     .map(|l| {
         //         l.split(", ").filter_map(|word| {
         //             let sanitized = word.trim().to_lowercase();
-
         //             if sanitized.chars().any(|ch| {
         //                 !(ch.is_ascii_alphabetic() || dict_lookup::PL_DIACRITICS.contains(ch)) // Ascii alphabet + PL accents only
         //             || ch.is_whitespace() // No multi-word entries
@@ -117,40 +128,44 @@ impl Generator {
 
         let mut word_root = word.clone();
 
-        let mut prefix: Vec<Chord> = vec![];
+        let mut prefix: Option<ChordSeqItem> = None;
 
         // Find all prefix matches
         for (pref_str, pref_chord) in self.prefixes_len_sorted.iter() {
             if word_root.starts_with(&pref_str.0) {
                 trace!(
-                    "REDUCE PREFIX: {:?} + {:?}",
+                    "REDUCE PREFIX:\t{}-",
                     pref_str.0,
-                    word_root.trim_start_matches(&pref_str.0),
                 );
                 word_root = word_root.trim_start_matches(&pref_str.0).to_string();
-                prefix.push(pref_chord.clone());
+                prefix = Some(ChordSeqItem::Prefix(
+                    pref_str.clone().into(),
+                    pref_chord.clone(),
+                ));
                 break;
             }
         }
 
-        let mut suffix: Vec<Chord> = vec![];
+        let mut suffix: Option<ChordSeqItem> = None;
         // Find all suffix matches
         for (suff_str, suff_chord) in self.suffixes_len_sorted.iter() {
             if word_root.ends_with(&suff_str.0) {
                 trace!(
-                    "REDUCE SUFFIX: {:?} + {:?}",
-                    word_root.trim_end_matches(&suff_str.0),
+                    "REDUCE SUFFIX:\t-{}",
                     suff_str.0,
                 );
                 word_root = word_root.trim_end_matches(&suff_str.0).to_string();
-                suffix.push(suff_chord.clone());
+                suffix = Some(ChordSeqItem::Suffix(
+                    suff_str.clone().into(),
+                    suff_chord.clone(),
+                ));
                 break;
             }
         }
 
         // Skip word roots achievable with prefixes/suffixes only
         if word_root.is_empty() {
-            debug!("SKIP CONSUMED: {}", word);
+            debug!("SKIP CONSUMED:\t{}", word);
         }
 
         let mut remaining_root_chars = word_root.clone();
@@ -158,14 +173,7 @@ impl Generator {
         // Skip exact existing word root matches
         let mut root_chords: ChordSequence =
             if let Some(chords) = self.word_root_dict.get(&word_root.clone().into()) {
-                debug!(
-                    "SKIP EXACT-ROOT: {}, {}, {:?}",
-                    word,
-                    word_root,
-                    self.word_root_dict
-                        .get(&word_root.clone().into())
-                        .map(|chs| chs.to_string()),
-                );
+                debug!("SKIP EXACT-ROOT:\t{}, {:?}", word_root, chords.to_string());
                 remaining_root_chars = "".to_string();
                 chords.clone()
             } else {
@@ -173,26 +181,27 @@ impl Generator {
             };
 
         'is_empty: while !remaining_root_chars.is_empty() {
-	    let mut current_chord_str = "".to_string();
+            let mut current_chord_str = "".to_string();
             let mut ch = Chord::default();
 
             // Find existing roots within this one
             for (known_root_str, known_root_chords) in self.word_root_dict.iter() {
-                if remaining_root_chars.starts_with(known_root_str.0.as_str()) {
-                    trace!(
-                        "REDUCE KNOWN-ROOT: {}: {:?} + {:?}, {:?} + {:?}",
-                        word_root,
-                        word_root.trim_end_matches(&remaining_root_chars),
-                        known_root_str.0,
-                        root_chords.to_string(),
-                        known_root_chords.to_string(),
-                    );
+                if remaining_root_chars.starts_with(known_root_str.0.as_str())
+                    && known_root_str.0.chars().count() > 1
+                {
                     remaining_root_chars = remaining_root_chars
                         .trim_start_matches(known_root_str.0.as_str())
                         .to_string();
-                    root_chords
-                        .items
-                        .push(ChordSeqItem::Nested(known_root_str.to_string(), known_root_chords.clone()));
+
+                    trace!(
+                        "REDUCE KNOWN-ROOT:\t{} ({})",
+                        known_root_str.0,
+                        known_root_chords.to_string(),
+                    );
+                    root_chords.items.push(ChordSeqItem::KnownRootEntry(
+                        known_root_str.to_string(),
+                        known_root_chords.clone(),
+                    ));
                 }
             }
 
@@ -201,27 +210,21 @@ impl Generator {
                 if remaining_root_chars.starts_with(lh_str.0.as_str()) {
                     let new_part: Chord = lh_chord.clone();
 
-
                     match ch.merge(&new_part) {
                         Ok(()) => {
-                            trace!(
-                                "REDUCE LEFT-HAND: {}: {:?} + {:?}, {:?} + {:?}",
-                                word_root,
-                                word_root.trim_end_matches(&remaining_root_chars),
-                                ch.to_string(),
-                                lh_str,
-                                new_part.to_string(),
-                            );
-
-			    current_chord_str.push_str(&lh_str.0);
-
+                            current_chord_str.push_str(&lh_str.0);
                             remaining_root_chars = remaining_root_chars
                                 .trim_start_matches(lh_str.0.as_str())
                                 .to_string();
+                            trace!(
+                                "REDUCE LEFT-HAND:\t{} ({}) ",
+                                lh_str,
+				lh_chord.to_string()
+                            );
                             break;
                         }
                         Err(_e) => {
-			    unreachable!();
+                            unreachable!();
                         }
                     }
                 }
@@ -234,32 +237,31 @@ impl Generator {
 
                     match ch.merge(&new_part) {
                         Ok(()) => {
-                            trace!(
-                                "REDUCE CENTER: {}: {:?} + {:?}, {:?} + {:?}",
-                                word_root,
-                                word_root.trim_end_matches(&remaining_root_chars),
-                                center_str,
-                                ch.to_string(),
-                                new_part.to_string(),
-                            );
+                            current_chord_str.push_str(&center_str.0);
 
-			    current_chord_str.push_str(&center_str.0);
+                            trace!(
+                                "REDUCE CENTER:\t{}, ({})",
+                                center_str,
+                                center_chord.to_string(),
+                            );
 
                             remaining_root_chars = remaining_root_chars
                                 .trim_start_matches(center_str.0.as_str())
                                 .to_string();
+
                             break;
                         }
                         Err(_e) => {
-                            trace!(
-                                "CONFLICT CENTER: {}: {:?} + {:?}, {:?} + {:?}",
-                                word_root,
+                            debug!(
+                                "CONFLICT CENTER:\t{} + {}, {} + {}",
                                 word_root.trim_end_matches(&remaining_root_chars),
                                 center_str,
                                 ch.to_string(),
                                 new_part.to_string(),
                             );
-                            root_chords.items.push(ChordSeqItem::Plain(current_chord_str, ch));
+                            root_chords
+                                .items
+                                .push(ChordSeqItem::RootChord(current_chord_str, ch));
                             continue 'is_empty;
                         }
                     }
@@ -273,16 +275,14 @@ impl Generator {
 
                     match ch.merge(&new_part) {
                         Ok(()) => {
+
                             trace!(
-                                "REDUCE RIGHT-HAND: {}: {:?} + {:?}, {:?} + {:?}",
-                                word_root,
-                                word_root.trim_end_matches(&remaining_root_chars),
-                                ch.to_string(),
+                                "REDUCE RIGHT-HAND:\t{}, ({})",
                                 rh_str,
-                                new_part.to_string(),
+                                rh_chord.to_string(),
                             );
 
-			    current_chord_str.push_str(&rh_str.0);
+                            current_chord_str.push_str(&rh_str.0);
 
                             remaining_root_chars = remaining_root_chars
                                 .trim_start_matches(rh_str.0.as_str())
@@ -290,24 +290,33 @@ impl Generator {
                             break;
                         }
                         Err(_e) => {
-                            trace!(
-                                "CONFLICT RIGHT-HAND: {}: {:?} + {:?}, {:?} + {:?}",
-                                word_root,
+                            debug!(
+                                "CONFLICT RIGHT-HAND:\t{} + {}, {} + {}",
                                 word_root.trim_end_matches(&remaining_root_chars),
-                                ch.to_string(),
                                 rh_str,
+                                ch.to_string(),
                                 new_part.to_string(),
                             );
-                            root_chords.items.push(ChordSeqItem::Plain(current_chord_str, ch));
+                            root_chords
+                                .items
+                                .push(ChordSeqItem::RootChord(current_chord_str, ch));
                             continue 'is_empty;
                         }
                     }
                 }
             }
 
-            root_chords.items.push(ChordSeqItem::Plain(current_chord_str, ch));
+            root_chords
+                .items
+                .push(ChordSeqItem::RootChord(current_chord_str, ch));
         }
 
-        Ok(root_chords)
+        let v: Vec<_> = prefix
+            .into_iter()
+            .chain(root_chords.items.into_iter())
+            .chain(suffix.into_iter())
+            .collect();
+
+        Ok(ChordSequence::new(v))
     }
 }

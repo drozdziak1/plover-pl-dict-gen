@@ -1,8 +1,8 @@
-use std::{cmp::{Eq, Ordering, PartialEq}, fmt::Display};
+use std::{cmp::{Eq, Ordering, PartialEq}, fmt::{Display, Debug}};
 
 pub type ErrBox = Box<dyn std::error::Error>;
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct LenSortableString<const ASCENDING: bool>(pub String);
 
 // The Eq and PartialEq impls below invert String's lexicographic
@@ -60,6 +60,12 @@ impl<const ASC: bool> From<&str> for LenSortableString<ASC> {
 
 impl<const ASC: bool> Display for LenSortableString<ASC> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
+        Display::fmt(&self.0, f)
+    }
+}
+
+impl<const ASC: bool> Debug for LenSortableString<ASC> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        Debug::fmt(&self.0, f)
     }
 }

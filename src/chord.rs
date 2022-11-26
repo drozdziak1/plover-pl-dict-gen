@@ -451,12 +451,29 @@ impl ChordSequence {
     }
     pub fn from_chord(s: String, ch: Chord) -> Self {
         Self {
-            items: vec![ChordSeqItem::Plain(s, ch)],
+            items: vec![ChordSeqItem::RootChord(s, ch)],
         }
     }
 
     pub fn collapse(&self) -> Vec<Chord> {
         self.items.iter().map(|i| i.collapse()).flatten().collect()
+    }
+
+    /// Re-assembles the word from sequence items
+    pub fn get_word(&self) -> String {
+        let mut ret = String::new();
+
+        for item in self.items.iter() {
+            let s = match item {
+                ChordSeqItem::RootChord(s, _)
+                | ChordSeqItem::KnownRootEntry(s, _)
+                | ChordSeqItem::Prefix(s, _)
+                | ChordSeqItem::Suffix(s, _) => s,
+            };
+
+            ret.push_str(s);
+        }
+        ret
     }
 }
 
@@ -484,15 +501,19 @@ impl ToString for ChordSequence {
 
 #[derive(Clone, Eq, PartialEq)]
 pub enum ChordSeqItem {
-    Plain(String, Chord),
-    Nested(String, ChordSequence),
+    RootChord(String, Chord),
+    KnownRootEntry(String, ChordSequence),
+    Prefix(String, Chord),
+    Suffix(String, Chord),
 }
 
 impl ChordSeqItem {
     pub fn collapse(&self) -> Vec<Chord> {
         match self {
-            Self::Plain(ref s, chord) => vec![chord.clone()],
-            Self::Nested(ref s, seq) => seq.collapse(),
+            Self::RootChord(_s, chord) => vec![chord.clone()],
+            Self::KnownRootEntry(_s, seq) => seq.collapse(),
+            Self::Prefix(_s, chord) => vec![chord.clone()],
+            Self::Suffix(_s, chord) => vec![chord.clone()],
         }
     }
 }
@@ -500,8 +521,10 @@ impl ChordSeqItem {
 impl ToString for ChordSeqItem {
     fn to_string(&self) -> String {
         match self {
-            Self::Plain(s, ch) => format!("{:?}:{}", s, ch.to_string()),
-            Self::Nested(s, chords) => format!("{:?}:({})", s, chords.to_string(),),
+            Self::RootChord(s, ch) => format!("{:?}:{}", s, ch.to_string()),
+            Self::KnownRootEntry(s, chords) => format!("{:?}:({})", s, chords.to_string(),),
+            Self::Prefix(s, ch) => format!("{}-:{}", s, ch.to_string()),
+            Self::Suffix(s, ch) => format!("-{}:{}", s, ch.to_string()),
         }
     }
 }
