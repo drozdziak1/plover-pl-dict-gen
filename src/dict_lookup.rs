@@ -2484,3 +2484,7 @@ pub static SPECIAL_CHARS: phf::Map<&'static str, &'static str> = phf::phf_map! {
     "<speaker9>" => "ZKSTPVLR-W",
     "<speaker10>" => "ZKSTPVLR-Y",
 };
+
+pub static SJP_DICT: &'static str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/odm.txt"));
+
+pub static PL_DIACRITICS: &'static str = "ąćęłńóśźż";

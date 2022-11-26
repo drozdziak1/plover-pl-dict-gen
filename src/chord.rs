@@ -1,4 +1,4 @@
-use std::str::FromStr;
+use std::{fmt::Debug, str::FromStr};
 
 use crate::ErrBox;
 
@@ -437,6 +437,72 @@ impl ToString for Chord {
         }
 
         ret
+    }
+}
+
+#[derive(Clone, Eq, PartialEq)]
+pub struct ChordSequence {
+    pub items: Vec<ChordSeqItem>,
+}
+
+impl ChordSequence {
+    pub fn new(items: Vec<ChordSeqItem>) -> Self {
+        Self { items }
+    }
+    pub fn from_chord(s: String, ch: Chord) -> Self {
+        Self {
+            items: vec![ChordSeqItem::Plain(s, ch)],
+        }
+    }
+
+    pub fn collapse(&self) -> Vec<Chord> {
+        self.items.iter().map(|i| i.collapse()).flatten().collect()
+    }
+}
+
+impl From<Vec<ChordSeqItem>> for ChordSequence {
+    fn from(items: Vec<ChordSeqItem>) -> Self {
+        Self { items }
+    }
+}
+
+impl From<ChordSeqItem> for ChordSequence {
+    fn from(item: ChordSeqItem) -> Self {
+        Self { items: vec![item] }
+    }
+}
+
+impl ToString for ChordSequence {
+    fn to_string(&self) -> String {
+        self.items
+            .iter()
+            .map(|item| item.to_string())
+            .collect::<Vec<_>>()
+            .join(" + ")
+    }
+}
+
+#[derive(Clone, Eq, PartialEq)]
+pub enum ChordSeqItem {
+    Plain(String, Chord),
+    Nested(String, ChordSequence),
+}
+
+impl ChordSeqItem {
+    pub fn collapse(&self) -> Vec<Chord> {
+        match self {
+            Self::Plain(ref s, chord) => vec![chord.clone()],
+            Self::Nested(ref s, seq) => seq.collapse(),
+        }
+    }
+}
+
+impl ToString for ChordSeqItem {
+    fn to_string(&self) -> String {
+        match self {
+            Self::Plain(s, ch) => format!("{:?}:{}", s, ch.to_string()),
+            Self::Nested(s, chords) => format!("{:?}:({})", s, chords.to_string(),),
+        }
     }
 }
 
