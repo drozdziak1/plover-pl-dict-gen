@@ -105,24 +105,6 @@ impl Generator {
         }) {
             return Err(format!("{:?} rejected - must be a single word made up exclusively of Polish and latin characters.", word).into());
         }
-        // let sjp_sanitized_len_sorted: BTreeSet<LenSortableString<true>> = dict_lookup::SJP_DICT
-        //     .lines()
-        //     .map(|l| {
-        //         l.split(", ").filter_map(|word| {
-        //             let sanitized = word.trim().to_lowercase();
-        //             if sanitized.chars().any(|ch| {
-        //                 !(ch.is_ascii_alphabetic() || dict_lookup::PL_DIACRITICS.contains(ch)) // Ascii alphabet + PL accents only
-        //             || ch.is_whitespace() // No multi-word entries
-        //             }) || sanitized.chars().count() < 2
-        //             {
-        //                 None
-        //             } else {
-        //                 Some(sanitized.into())
-        //             }
-        //         })
-        //     })
-        //     .flatten()
-        //     .collect();
 
         trace!("WORD: {}", word);
 
@@ -133,10 +115,7 @@ impl Generator {
         // Find all prefix matches
         for (pref_str, pref_chord) in self.prefixes_len_sorted.iter() {
             if word_root.starts_with(&pref_str.0) {
-                trace!(
-                    "REDUCE PREFIX:\t{}-",
-                    pref_str.0,
-                );
+                trace!("REDUCE PREFIX:\t{}-", pref_str.0,);
                 word_root = word_root.trim_start_matches(&pref_str.0).to_string();
                 prefix = Some(ChordSeqItem::Prefix(
                     pref_str.clone().into(),
@@ -150,10 +129,7 @@ impl Generator {
         // Find all suffix matches
         for (suff_str, suff_chord) in self.suffixes_len_sorted.iter() {
             if word_root.ends_with(&suff_str.0) {
-                trace!(
-                    "REDUCE SUFFIX:\t-{}",
-                    suff_str.0,
-                );
+                trace!("REDUCE SUFFIX:\t-{}", suff_str.0,);
                 word_root = word_root.trim_end_matches(&suff_str.0).to_string();
                 suffix = Some(ChordSeqItem::Suffix(
                     suff_str.clone().into(),
@@ -173,7 +149,7 @@ impl Generator {
         // Skip exact existing word root matches
         let mut root_chords: ChordSequence =
             if let Some(chords) = self.word_root_dict.get(&word_root.clone().into()) {
-                debug!("SKIP EXACT-ROOT:\t{}, {:?}", word_root, chords.to_string());
+                debug!("SKIP EXACT-ROOT:\t{}, {}", word_root, chords.to_string());
                 remaining_root_chars = "".to_string();
                 chords.clone()
             } else {
@@ -184,25 +160,40 @@ impl Generator {
             let mut current_chord_str = "".to_string();
             let mut ch = Chord::default();
 
-            // Find existing roots within this one
-            for (known_root_str, known_root_chords) in self.word_root_dict.iter() {
-                if remaining_root_chars.starts_with(known_root_str.0.as_str())
-                    && known_root_str.0.chars().count() > 1
-                {
-                    remaining_root_chars = remaining_root_chars
-                        .trim_start_matches(known_root_str.0.as_str())
-                        .to_string();
-
-                    trace!(
-                        "REDUCE KNOWN-ROOT:\t{} ({})",
-                        known_root_str.0,
-                        known_root_chords.to_string(),
-                    );
-                    root_chords.items.push(ChordSeqItem::KnownRootEntry(
-                        known_root_str.to_string(),
-                        known_root_chords.clone(),
-                    ));
+            let mut longest_match_len = 0;
+            // Find longest existing root within this one
+            for i in 2..remaining_root_chars.chars().count() {
+                if let Some(slice) = remaining_root_chars.get(0..i).map(|s| s.to_string()) {
+                    if self.word_root_dict.contains_key(&slice.to_string().into()) {
+                        longest_match_len = i;
+                    } else {
+                        break;
+                    }
                 }
+            }
+
+            if longest_match_len > 0 {
+                let slice = remaining_root_chars
+                    .get(0..longest_match_len)
+                    .map(|s| s.to_string())
+                    .unwrap();
+
+                let known_root_str = slice.clone();
+                let known_root_chords = self.word_root_dict.get(&slice.to_string().into()).unwrap();
+
+                remaining_root_chars = remaining_root_chars
+                    .trim_start_matches(known_root_str.as_str())
+                    .to_string();
+
+                trace!(
+                    "REDUCE KNOWN-ROOT:\t{} ({})",
+                    known_root_str,
+                    known_root_chords.to_string(),
+                );
+                root_chords.items.push(ChordSeqItem::KnownRootEntry(
+                    known_root_str.to_string(),
+                    known_root_chords.clone(),
+                ));
             }
 
             // Find left-hand match
@@ -216,11 +207,7 @@ impl Generator {
                             remaining_root_chars = remaining_root_chars
                                 .trim_start_matches(lh_str.0.as_str())
                                 .to_string();
-                            trace!(
-                                "REDUCE LEFT-HAND:\t{} ({}) ",
-                                lh_str,
-				lh_chord.to_string()
-                            );
+                            trace!("REDUCE LEFT-HAND:\t{} ({}) ", lh_str, lh_chord.to_string());
                             break;
                         }
                         Err(_e) => {
@@ -275,12 +262,7 @@ impl Generator {
 
                     match ch.merge(&new_part) {
                         Ok(()) => {
-
-                            trace!(
-                                "REDUCE RIGHT-HAND:\t{}, ({})",
-                                rh_str,
-                                rh_chord.to_string(),
-                            );
+                            trace!("REDUCE RIGHT-HAND:\t{}, ({})", rh_str, rh_chord.to_string(),);
 
                             current_chord_str.push_str(&rh_str.0);
 
