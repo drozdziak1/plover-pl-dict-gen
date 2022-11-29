@@ -113,30 +113,29 @@ impl Generator {
         let mut prefix: Option<ChordSeqItem> = None;
 
         // Find all prefix matches
-        for (pref_str, pref_chord) in self.prefixes_len_sorted.iter() {
-            if word_root.starts_with(&pref_str.0) {
-                trace!("REDUCE PREFIX:\t{}-", pref_str.0,);
-                word_root = word_root.trim_start_matches(&pref_str.0).to_string();
-                prefix = Some(ChordSeqItem::Prefix(
-                    pref_str.clone().into(),
-                    pref_chord.clone(),
-                ));
-                break;
-            }
+        if let Some((pref_str, pref_chord)) =
+            find_longest_affix(&word_root, &self.prefixes_len_sorted, true)
+        {
+            trace!("REDUCE PREFIX:\t{}-", pref_str);
+            word_root = word_root.trim_start_matches(&pref_str).to_string();
+            prefix = Some(ChordSeqItem::Prefix(
+                pref_str.clone().into(),
+                pref_chord.clone(),
+            ));
         }
 
         let mut suffix: Option<ChordSeqItem> = None;
+
         // Find all suffix matches
-        for (suff_str, suff_chord) in self.suffixes_len_sorted.iter() {
-            if word_root.ends_with(&suff_str.0) {
-                trace!("REDUCE SUFFIX:\t-{}", suff_str.0,);
-                word_root = word_root.trim_end_matches(&suff_str.0).to_string();
-                suffix = Some(ChordSeqItem::Suffix(
-                    suff_str.clone().into(),
-                    suff_chord.clone(),
-                ));
-                break;
-            }
+        if let Some((suff_str, suff_chord)) =
+            find_longest_affix(&word_root, &self.suffixes_len_sorted, false)
+        {
+            trace!("REDUCE SUFFIX:\t-{}", suff_str,);
+            word_root = word_root.trim_end_matches(&suff_str).to_string();
+            suffix = Some(ChordSeqItem::Suffix(
+                suff_str.clone().into(),
+                suff_chord.clone(),
+            ));
         }
 
         // Skip word roots achievable with prefixes/suffixes only
@@ -156,31 +155,16 @@ impl Generator {
                 ChordSequence::new(vec![])
             };
 
+	println!("Before is_empty loop");
+
         'is_empty: while !remaining_root_chars.is_empty() {
             let mut current_chord_str = "".to_string();
             let mut ch = Chord::default();
-
-            let mut longest_match_len = 0;
+	    
             // Find longest existing root within this one
-            for i in 2..remaining_root_chars.chars().count() {
-                if let Some(slice) = remaining_root_chars.get(0..i).map(|s| s.to_string()) {
-                    if self.word_root_dict.contains_key(&slice.to_string().into()) {
-                        longest_match_len = i;
-                    } else {
-                        break;
-                    }
-                }
-            }
-
-            if longest_match_len > 0 {
-                let slice = remaining_root_chars
-                    .get(0..longest_match_len)
-                    .map(|s| s.to_string())
-                    .unwrap();
-
-                let known_root_str = slice.clone();
-                let known_root_chords = self.word_root_dict.get(&slice.to_string().into()).unwrap();
-
+            if let Some((known_root_str, known_root_chords)) =
+                find_longest_affix(&remaining_root_chars, &self.word_root_dict, true)
+            {
                 remaining_root_chars = remaining_root_chars
                     .trim_start_matches(known_root_str.as_str())
                     .to_string();
@@ -192,98 +176,89 @@ impl Generator {
                 );
                 root_chords.items.push(ChordSeqItem::KnownRootEntry(
                     known_root_str.to_string(),
-                    known_root_chords.clone(),
+                    known_root_chords,
                 ));
             }
 
-            // Find left-hand match
-            for (lh_str, lh_chord) in self.lh_combos_len_sorted.iter() {
-                if remaining_root_chars.starts_with(lh_str.0.as_str()) {
-                    let new_part: Chord = lh_chord.clone();
+            // Find longest left-hand cluster
+            if let Some((lh_str, lh_chord)) =
+                find_longest_affix(&remaining_root_chars, &self.lh_combos_len_sorted, true)
+            {
+                let new_part: Chord = lh_chord;
 
-                    match ch.merge(&new_part) {
-                        Ok(()) => {
-                            current_chord_str.push_str(&lh_str.0);
-                            remaining_root_chars = remaining_root_chars
-                                .trim_start_matches(lh_str.0.as_str())
-                                .to_string();
-                            trace!("REDUCE LEFT-HAND:\t{} ({}) ", lh_str, lh_chord.to_string());
-                            break;
-                        }
-                        Err(_e) => {
-                            unreachable!();
-                        }
+                match ch.merge(&new_part) {
+                    Ok(()) => {
+                        current_chord_str.push_str(&lh_str);
+                        remaining_root_chars = remaining_root_chars
+                            .trim_start_matches(lh_str.as_str())
+                            .to_string();
+                        trace!("REDUCE LEFT-HAND:\t{} ({}) ", lh_str, new_part.to_string());
+                        break;
+                    }
+                    Err(_e) => {
+                        unreachable!();
                     }
                 }
             }
 
             // Find center match
-            for (center_str, center_chord) in self.center_combos_len_sorted.iter() {
-                if remaining_root_chars.starts_with(center_str.0.as_str()) {
-                    let new_part: Chord = center_chord.clone();
+            if let Some((center_str, center_chord)) =
+                find_longest_affix(&remaining_root_chars, &self.center_combos_len_sorted, true)
+            {
+                let new_part: Chord = center_chord;
 
-                    match ch.merge(&new_part) {
-                        Ok(()) => {
-                            current_chord_str.push_str(&center_str.0);
-
-                            trace!(
-                                "REDUCE CENTER:\t{}, ({})",
-                                center_str,
-                                center_chord.to_string(),
-                            );
-
-                            remaining_root_chars = remaining_root_chars
-                                .trim_start_matches(center_str.0.as_str())
-                                .to_string();
-
-                            break;
-                        }
-                        Err(_e) => {
-                            debug!(
-                                "CONFLICT CENTER:\t{} + {}, {} + {}",
-                                word_root.trim_end_matches(&remaining_root_chars),
-                                center_str,
-                                ch.to_string(),
-                                new_part.to_string(),
-                            );
-                            root_chords
-                                .items
-                                .push(ChordSeqItem::RootChord(current_chord_str, ch));
-                            continue 'is_empty;
-                        }
+                match ch.merge(&new_part) {
+                    Ok(()) => {
+                        current_chord_str.push_str(&center_str);
+                        remaining_root_chars = remaining_root_chars
+                            .trim_start_matches(center_str.as_str())
+                            .to_string();
+                        trace!("REDUCE CENTER:\t{} ({}) ", center_str, new_part.to_string());
+                        break;
+                    }
+                    Err(_e) => {
+                        debug!(
+                            "CONFLICT CENTER:\t{} + {}, {} + {}",
+                            word_root.trim_end_matches(&remaining_root_chars),
+                            center_str,
+                            ch.to_string(),
+                            new_part.to_string(),
+                        );
+                        root_chords
+                            .items
+                            .push(ChordSeqItem::RootChord(current_chord_str, ch));
+                        continue 'is_empty;
                     }
                 }
             }
 
             // Find right-hand match
-            for (rh_str, rh_chord) in self.rh_combos_len_sorted.iter() {
-                if remaining_root_chars.starts_with(rh_str.0.as_str()) {
-                    let new_part: Chord = rh_chord.clone();
+            if let Some((rh_str, rh_chord)) =
+                find_longest_affix(&remaining_root_chars, &self.rh_combos_len_sorted, true)
+            {
+                let new_part: Chord = rh_chord;
 
-                    match ch.merge(&new_part) {
-                        Ok(()) => {
-                            trace!("REDUCE RIGHT-HAND:\t{}, ({})", rh_str, rh_chord.to_string(),);
-
-                            current_chord_str.push_str(&rh_str.0);
-
-                            remaining_root_chars = remaining_root_chars
-                                .trim_start_matches(rh_str.0.as_str())
-                                .to_string();
-                            break;
-                        }
-                        Err(_e) => {
-                            debug!(
-                                "CONFLICT RIGHT-HAND:\t{} + {}, {} + {}",
-                                word_root.trim_end_matches(&remaining_root_chars),
-                                rh_str,
-                                ch.to_string(),
-                                new_part.to_string(),
-                            );
-                            root_chords
-                                .items
-                                .push(ChordSeqItem::RootChord(current_chord_str, ch));
-                            continue 'is_empty;
-                        }
+                match ch.merge(&new_part) {
+                    Ok(()) => {
+                        current_chord_str.push_str(&rh_str);
+                        remaining_root_chars = remaining_root_chars
+                            .trim_start_matches(rh_str.as_str())
+                            .to_string();
+                        trace!("REDUCE RIGHT_HAND:\t{} ({}) ", rh_str, new_part.to_string());
+                        break;
+                    }
+                    Err(_e) => {
+                        debug!(
+                            "CONFLICT RIGHT-HAND:\t{} + {}, {} + {}",
+                            word_root.trim_end_matches(&remaining_root_chars),
+                            rh_str,
+                            ch.to_string(),
+                            new_part.to_string(),
+                        );
+                        root_chords
+                            .items
+                            .push(ChordSeqItem::RootChord(current_chord_str, ch));
+                        continue 'is_empty;
                     }
                 }
             }
@@ -301,4 +276,34 @@ impl Generator {
 
         Ok(ChordSequence::new(v))
     }
+}
+
+pub fn find_longest_affix<const ASC: bool, T: Clone>(
+    needle: &str,
+    haystack: &BTreeMap<LenSortableString<ASC>, T>,
+    is_prefix: bool,
+) -> Option<(String, T)> {
+    let needle_len = needle.chars().count();
+    if needle_len < 2 {
+        return None;
+    }
+
+    let mut ret = None;
+
+    let idx_range_iter: Box<dyn Iterator<Item = usize>> = if is_prefix {
+        Box::new(2..needle_len)
+    } else {
+        Box::new((0..(needle_len - 2)).rev())
+    };
+
+    for i in idx_range_iter {
+        let slice_range_iter = if is_prefix { 0..i } else { i..needle_len };
+
+        let slice = needle.get(slice_range_iter)?;
+
+        if let Some(item) = haystack.get(&slice.to_string().into()) {
+            ret = Some((slice.to_string(), item.clone()))
+        }
+    }
+    ret
 }
