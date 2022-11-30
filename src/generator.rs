@@ -50,7 +50,7 @@ impl Generator {
         let rh_combos_len_sorted: BTreeMap<LenSortableString<false>, Chord> =
             dict_lookup::RIGHT_HAND_COMBOS
                 .into_iter()
-                .map(|(txt, chord)| chord.parse().map(|ch| ((*txt).into(), ch)))
+                .map(|(txt, chord)| format!("-{}", chord).parse().map(|ch| ((*txt).into(), ch)))
                 .collect::<Result<_, _>>()?;
 
         let word_root_dict: BTreeMap<LenSortableString<false>, ChordSequence> =
@@ -76,6 +76,8 @@ impl Generator {
         })
     }
 
+    /// NOTE: Only root recipe is added to the dictionary, but the
+    /// complete chord set is returned.
     pub fn add_word_root(&mut self, word: &str) -> Result<ChordSequence, ErrBox> {
         let chords = self.gen_word_chords(word)?;
         let mut root_chords = chords.clone();
@@ -90,7 +92,7 @@ impl Generator {
             .collect();
 
         self.word_root_dict
-            .insert(chords.get_word().into(), root_chords.clone());
+            .insert(root_chords.get_word().into(), root_chords.clone());
         Ok(chords)
     }
 
@@ -106,17 +108,18 @@ impl Generator {
             return Err(format!("{:?} rejected - must be a single word made up exclusively of Polish and latin characters.", word).into());
         }
 
-        trace!("WORD: {}", word);
+        debug!("WORD: {}", word);
 
         let mut word_root = word.clone();
 
         let mut prefix: Option<ChordSeqItem> = None;
 
+        trace!("ATTEMPT PREFIX");
         // Find all prefix matches
         if let Some((pref_str, pref_chord)) =
-            find_longest_affix(&word_root, &self.prefixes_len_sorted, true)
+            find_longest_affix(&word_root, &self.prefixes_len_sorted, 3, true)
         {
-            trace!("REDUCE PREFIX:\t{}-", pref_str);
+            debug!("REDUCE PREFIX:\t{}-", pref_str);
             word_root = word_root.trim_start_matches(&pref_str).to_string();
             prefix = Some(ChordSeqItem::Prefix(
                 pref_str.clone().into(),
@@ -126,9 +129,10 @@ impl Generator {
 
         let mut suffix: Option<ChordSeqItem> = None;
 
+        trace!("ATTEMPT SUFFIX");
         // Find all suffix matches
         if let Some((suff_str, suff_chord)) =
-            find_longest_affix(&word_root, &self.suffixes_len_sorted, false)
+            find_longest_affix(&word_root, &self.suffixes_len_sorted, 3, false)
         {
             trace!("REDUCE SUFFIX:\t-{}", suff_str,);
             word_root = word_root.trim_end_matches(&suff_str).to_string();
@@ -155,21 +159,23 @@ impl Generator {
                 ChordSequence::new(vec![])
             };
 
-	println!("Before is_empty loop");
-
         'is_empty: while !remaining_root_chars.is_empty() {
             let mut current_chord_str = "".to_string();
             let mut ch = Chord::default();
-	    
+
+	    let mut roots_found = false;
+
+            trace!("ATTEMPT KNOWN-ROOT");
             // Find longest existing root within this one
-            if let Some((known_root_str, known_root_chords)) =
-                find_longest_affix(&remaining_root_chars, &self.word_root_dict, true)
+            while let Some((known_root_str, known_root_chords)) =
+                find_longest_affix(&remaining_root_chars, &self.word_root_dict, 3, true)
             {
+		roots_found = true;
                 remaining_root_chars = remaining_root_chars
                     .trim_start_matches(known_root_str.as_str())
                     .to_string();
 
-                trace!(
+                debug!(
                     "REDUCE KNOWN-ROOT:\t{} ({})",
                     known_root_str,
                     known_root_chords.to_string(),
@@ -180,9 +186,10 @@ impl Generator {
                 ));
             }
 
+            trace!("ATTEMPT LEFT-HAND");
             // Find longest left-hand cluster
             if let Some((lh_str, lh_chord)) =
-                find_longest_affix(&remaining_root_chars, &self.lh_combos_len_sorted, true)
+                find_longest_affix(&remaining_root_chars, &self.lh_combos_len_sorted, 1, true)
             {
                 let new_part: Chord = lh_chord;
 
@@ -192,8 +199,7 @@ impl Generator {
                         remaining_root_chars = remaining_root_chars
                             .trim_start_matches(lh_str.as_str())
                             .to_string();
-                        trace!("REDUCE LEFT-HAND:\t{} ({}) ", lh_str, new_part.to_string());
-                        break;
+                        debug!("REDUCE LEFT-HAND:\t{} ({}) ", lh_str, new_part.to_string());
                     }
                     Err(_e) => {
                         unreachable!();
@@ -201,9 +207,10 @@ impl Generator {
                 }
             }
 
+            trace!("ATTEMPT CENTER");
             // Find center match
             if let Some((center_str, center_chord)) =
-                find_longest_affix(&remaining_root_chars, &self.center_combos_len_sorted, true)
+                find_longest_affix(&remaining_root_chars, &self.center_combos_len_sorted, 1, true)
             {
                 let new_part: Chord = center_chord;
 
@@ -213,8 +220,7 @@ impl Generator {
                         remaining_root_chars = remaining_root_chars
                             .trim_start_matches(center_str.as_str())
                             .to_string();
-                        trace!("REDUCE CENTER:\t{} ({}) ", center_str, new_part.to_string());
-                        break;
+                        debug!("REDUCE CENTER:\t{} ({}) ", center_str, new_part.to_string());
                     }
                     Err(_e) => {
                         debug!(
@@ -232,9 +238,10 @@ impl Generator {
                 }
             }
 
+            trace!("ATTEMPT RIGHT_HAND");
             // Find right-hand match
             if let Some((rh_str, rh_chord)) =
-                find_longest_affix(&remaining_root_chars, &self.rh_combos_len_sorted, true)
+                find_longest_affix(&remaining_root_chars, &self.rh_combos_len_sorted, 1, true)
             {
                 let new_part: Chord = rh_chord;
 
@@ -244,8 +251,7 @@ impl Generator {
                         remaining_root_chars = remaining_root_chars
                             .trim_start_matches(rh_str.as_str())
                             .to_string();
-                        trace!("REDUCE RIGHT_HAND:\t{} ({}) ", rh_str, new_part.to_string());
-                        break;
+                        debug!("REDUCE RIGHT_HAND:\t{} ({}) ", rh_str, new_part.to_string());
                     }
                     Err(_e) => {
                         debug!(
@@ -261,6 +267,11 @@ impl Generator {
                         continue 'is_empty;
                     }
                 }
+            }
+
+            if ch == Chord::default() && !roots_found {
+                error!("INFINITE-LOOP: {}, {} left", word, remaining_root_chars);
+		return Err(format!("infinite loop on {}", word).into());
             }
 
             root_chords
@@ -281,29 +292,36 @@ impl Generator {
 pub fn find_longest_affix<const ASC: bool, T: Clone>(
     needle: &str,
     haystack: &BTreeMap<LenSortableString<ASC>, T>,
+    min_match_len: usize,
     is_prefix: bool,
 ) -> Option<(String, T)> {
-    let needle_len = needle.chars().count();
-    if needle_len < 2 {
+    let ndl_vec = needle.chars().collect::<Vec<_>>();
+    let needle_len = ndl_vec.len();
+
+    if needle_len == 0 {
         return None;
     }
 
-    let mut ret = None;
+    for n_chars in (min_match_len..=needle_len).rev() {
+        let slice_range = if is_prefix {
+            0..n_chars
+        } else {
+            (needle_len - n_chars)..needle_len
+        };
 
-    let idx_range_iter: Box<dyn Iterator<Item = usize>> = if is_prefix {
-        Box::new(2..needle_len)
-    } else {
-        Box::new((0..(needle_len - 2)).rev())
-    };
+        let slice = ndl_vec.get(slice_range).or_else(|| {
+            error!("Computed slice could not be retrieved");
+            None
+        })?;
 
-    for i in idx_range_iter {
-        let slice_range_iter = if is_prefix { 0..i } else { i..needle_len };
+        let slice_string = slice.iter().collect::<String>();
 
-        let slice = needle.get(slice_range_iter)?;
-
-        if let Some(item) = haystack.get(&slice.to_string().into()) {
-            ret = Some((slice.to_string(), item.clone()))
+        if let Some(item) = haystack.get(&slice_string.clone().into()) {
+            trace!("HIT {}", slice_string);
+            return Some((slice_string, item.clone()));
         }
+
+        trace!("MISS {}", slice_string);
     }
-    ret
+    None
 }

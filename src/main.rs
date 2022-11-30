@@ -53,6 +53,7 @@ fn main() -> Result<(), ErrBox> {
         )?,
     );
 
+    // env_logger::init();
     for (idx, sjp_word) in sjp_sanitized_len_sorted.iter().enumerate() {
         gen.add_word_root(&sjp_word.0)?;
 
@@ -65,9 +66,12 @@ fn main() -> Result<(), ErrBox> {
 
     bar.finish();
 
+    println!("SJP processing OK");
+    println!("{} distinct word roots created", gen.word_root_dict.len());
+
     let stdin = io::stdin();
 
-    // Do not display verbose logging for SJP processing
+    // display logging messages only after SJP processing
     env_logger::init();
 
     loop {
