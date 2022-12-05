@@ -164,7 +164,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "plover-pl-dict-gen"
+name = "plover-pl-dict-gen-rs"
 version = "0.1.0"
 dependencies = [
  "env_logger",
