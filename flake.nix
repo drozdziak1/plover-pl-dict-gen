@@ -35,6 +35,7 @@
       packages = {
         plover-pl-dict-gen-rs = (rustPkgs.workspace.plover-pl-dict-gen-rs { }).bin;
         default = self.packages.${system}.plover-pl-dict-gen-rs;
+        morfeusz2 = pkgs.callPackage ./nix/packages/morfeusz2.nix {};
       };
     });
 }
