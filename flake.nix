@@ -26,16 +26,21 @@
       };
     in
     {
-      devShell = pkgs.mkShell {
-        buildInputs = [
-          pkgs.rust-bin.stable.${rustVersion}.default
-          cargo2nix.outputs.packages.${system}.cargo2nix
-        ];
-      };
+      devShell = pkgs.mkShell
+        {
+          nativeBuildInputs = with pkgs; [ pkg-config stdenv.cc llvmPackages.libstdcxxClang libclang.dev libclang.lib ];
+          MORFEUSZ2_PATH="${self.packages.${system}.morfeusz2}";
+          LIBCLANG_PATH="${pkgs.libclang.lib}/lib";
+          buildInputs = [
+            self.packages.${system}.morfeusz2
+            pkgs.rust-bin.stable.${rustVersion}.default # 
+            cargo2nix.outputs.packages.${system}.cargo2nix
+          ];
+        };
       packages = {
         plover-pl-dict-gen-rs = (rustPkgs.workspace.plover-pl-dict-gen-rs { }).bin;
         default = self.packages.${system}.plover-pl-dict-gen-rs;
-        morfeusz2 = pkgs.callPackage ./nix/packages/morfeusz2.nix {};
+        morfeusz2 = pkgs.callPackage ./nix/packages/morfeusz2.nix { };
       };
     });
 }
