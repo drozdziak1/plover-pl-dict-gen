@@ -5,8 +5,12 @@ fn main() -> Result<(), ErrBox> {
     if let Some(morfeusz2_path_str) = env::var_os("MORFEUSZ2_PATH") {
         let morfeusz2_path = PathBuf::from(&morfeusz2_path_str);
         println!(
-            "cargo:rustc-link-search=native={}/lib",
+            "cargo:rustc-link-search=native={}/lib/libmorfeusz2.so",
             morfeusz2_path.display()
+        );
+
+        println!(
+            "cargo:rustc-link-lib=morfeusz2",
         );
 
         println!("cargo:rerun-if-changed={}", morfeusz2_path.display());
