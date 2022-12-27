@@ -1,25 +1,38 @@
-#![allow(non_upper_case_globals)]
-#![allow(non_camel_case_types)]
-#![allow(non_snake_case)]
+use autocxx::{prelude::*, subclass::subclass};
 
-include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
+include_cpp! {
+    #include "morfeusz2.h"
+    safety!(unsafe_ffi)
+    generate_ns!("morfeusz")
+}
+
+pub use ffi::morfeusz;
+
+#[subclass(superclass("morfeusz::MorphInterpretation"))]
+pub struct MorphInterpretation {
+}
 
 #[cfg(test)]
 pub mod test {
     use super::*;
 
-    use root::morfeusz;
-
     #[test]
     fn test_sanity() {
-        unsafe {
-            let morf = morfeusz::Morfeusz::createInstance(
-                morfeusz::MorfeuszUsage_BOTH_ANALYSE_AND_GENERATE,
-            );
+        let morf =
+            morfeusz::Morfeusz::createInstance(morfeusz::MorfeuszUsage::BOTH_ANALYSE_AND_GENERATE);
 
-	    let m_ref = *morf;
+        let morf_ref = unsafe {
+            morf.as_ref()
+                .expect("Could not turn Morfeusz struct into reference")
+        };
 
-            let res = m_ref.analyse("wlazł kotek na płotek");
+        cxx::let_cxx_string!(input = "wlazł kotek na płotek");
+        let res = morf_ref.analyse(&input);
+
+        while res.hasNext() {
+            let morph = res.next();
+
+            morph.getName
         }
     }
 }

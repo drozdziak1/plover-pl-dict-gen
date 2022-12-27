@@ -1,35 +1,30 @@
-use std::{env, path::PathBuf};
+use std::{
+    env,
+    path::{Path, PathBuf},
+};
 
 type ErrBox = Box<dyn std::error::Error>;
 fn main() -> Result<(), ErrBox> {
     if let Some(morfeusz2_path_str) = env::var_os("MORFEUSZ2_PATH") {
         let morfeusz2_path = PathBuf::from(&morfeusz2_path_str);
         println!(
-            "cargo:rustc-link-search=native={}/lib/libmorfeusz2.so",
+            "cargo:rustc-link-search=native={}/lib",
             morfeusz2_path.display()
-        );
-
-        println!(
-            "cargo:rustc-link-lib=morfeusz2",
         );
 
         println!("cargo:rerun-if-changed={}", morfeusz2_path.display());
 
         let mut morfeusz2_header = morfeusz2_path.clone();
-        morfeusz2_header.push("include/morfeusz2.h");
+        morfeusz2_header.push("include");
 
-        let bindings = bindgen::Builder::default()
-            .header(morfeusz2_header.display().to_string())
-            .enable_cxx_namespaces()
-            .allowlist_file(".*morfeusz.*")
-            .opaque_type("std::.*")
-            .clang_args(&["-x", "c++", "-std=c++11"])
-            .parse_callbacks(Box::new(bindgen::CargoCallbacks))
-            .generate()?;
+        let mut b =
+            autocxx_build::Builder::new("src/lib.rs", &[&morfeusz2_header, Path::new("src")])
+                .build()?;
 
-        let out_path = PathBuf::from(env::var("OUT_DIR")?);
-        eprintln!("written out to {}", out_path.display());
-        bindings.write_to_file(out_path.join("bindings.rs"))?;
+        b.flag_if_supported("-std=c++14").compile("morfeusz2-sys");
+        println!("cargo:rerun-if-changed=src/lib.rs");
+
+        println!("cargo:rustc-link-lib=morfeusz2");
     } else {
         return Err(format!("Please specify libmorfeusz2 with MORFEUSZ2_PATH").into());
     }
