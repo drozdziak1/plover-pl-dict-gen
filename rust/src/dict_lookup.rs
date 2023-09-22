@@ -12,8 +12,10 @@ pub static LEFT_HAND_COMBOS: phf::Map<&'static str, &'static str> = phf::phf_map
     "t" => "T",
     "p" => "P",
     "v" => "V",
-    "w" => "W",
-    "l" => "R",
+    "w" => "V",
+    "l" => "L-",
+    "r" => "R-",
+    "n" => "LR-",
 
     // page 29 - occuring primarily at the beginning of the word, mostly in borrowings
     "au" => "EA",
@@ -549,6 +551,7 @@ pub static CENTER_COMBOS: phf::Map<&'static str, &'static str> = phf::phf_map! {
     "i" => "I",
     "a" => "A",
     "u" => "U",
+    "o" => "AU", // Custom
 
     // page 30
     "ą" => "EAU",
@@ -567,16 +570,16 @@ pub static CENTER_COMBOS: phf::Map<&'static str, &'static str> = phf::phf_map! {
 pub static RIGHT_HAND_COMBOS: phf::Map<&'static str, &'static str> = phf::phf_map! {
     // page 26
     "c" => "C",
-    "r" => "R",
-    "l" => "L",
+    "r" => "-R",
+    "l" => "-L",
     "b" => "B",
     "s" => "S",
     "g" => "G",
     "t" => "T",
-    "v" => "V",
-    "w" => "V",
     "o" => "O",
     "y" => "Y",
+    "v" => "W",
+    "w" => "W",
 
     // Page 44
     "p" => "BW",
@@ -1420,6 +1423,7 @@ pub static PREFIXES: phf::Map<&'static str, &'static str> = phf::phf_map! {
     "roze" => "R*AUSO",
     "u" => "*U",
     "wiel" => "VE*IL",
+    "wielo" => "VE*ILO",
     "wielko" => "VE*ILGO",
     "wokół" => "FKE*IULB", // Not in the book, felt relevant for stuff like "Wokółuszny"
     "wspól" => "FSPE*IUL",
