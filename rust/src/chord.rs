@@ -459,6 +459,31 @@ impl ChordSequence {
         self.items.iter().map(|i| i.collapse()).flatten().collect()
     }
 
+    pub fn print_chords(&self) -> String {
+        let chords = self.collapse();
+
+        if chords.is_empty() {
+            return String::from("<empty>");
+        }
+
+        return chords
+            .iter()
+            .map(|ch| ch.to_string())
+            .collect::<Vec<_>>()
+            .join(" + ");
+    }
+
+    pub fn is_oneshot(&self) -> bool {
+        if self.items.len() == 1 {
+            match &self.items[0] {
+                ChordSeqItem::KnownRootEntry(_s, seq) => seq.is_oneshot(),
+                _other => true,
+            }
+        } else {
+            false
+        }
+    }
+
     /// Re-assembles the word from sequence items
     pub fn get_word(&self) -> String {
         let mut ret = String::new();
@@ -521,10 +546,10 @@ impl ChordSeqItem {
 impl ToString for ChordSeqItem {
     fn to_string(&self) -> String {
         match self {
-            Self::RootChord(s, ch) => format!("{:?}:{}", s, ch.to_string()),
-            Self::KnownRootEntry(s, chords) => format!("{:?}:({})", s, chords.to_string(),),
-            Self::Prefix(s, ch) => format!("{}-:{}", s, ch.to_string()),
-            Self::Suffix(s, ch) => format!("-{}:{}", s, ch.to_string()),
+            Self::RootChord(s, ch) => format!("RC:{:?}:{}", s, ch.to_string()),
+            Self::KnownRootEntry(s, chords) => format!("KR:{:?}:({})", s, chords.to_string(),),
+            Self::Prefix(s, ch) => format!("P:{}-:{}", s, ch.to_string()),
+            Self::Suffix(s, ch) => format!("S:-{}:{}", s, ch.to_string()),
         }
     }
 }

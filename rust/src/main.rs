@@ -27,22 +27,25 @@ fn main() -> Result<(), ErrBox> {
 
     let sjp_sanitized_len_sorted: BTreeSet<LenSortableString<true>> = dict_lookup::SJP_DICT
         .lines()
-        .map(|l| {
-            l.split(", ").filter_map(|word| {
-                let sanitized = word.trim().to_lowercase();
-                if sanitized.chars().any(|ch| {
-                    !(ch.is_ascii_alphabetic() || dict_lookup::PL_DIACRITICS.contains(ch)) // Ascii alphabet + PL accents only
-			|| ch.is_whitespace() // No multi-word entries
-                }) || sanitized.chars().count() < 2
-                // No single character entries
-                {
-                    None
-                } else {
-                    Some(sanitized.into())
+        .filter_map(|l| {
+            match l.split(", ").next() {
+                Some(word) => {
+                    let sanitized = word.trim().to_lowercase();
+
+                    if sanitized.chars().any(|ch| {
+                        !(ch.is_ascii_alphabetic() || dict_lookup::PL_DIACRITICS.contains(ch)) // Ascii alphabet + PL accents only
+		    || ch.is_whitespace() // No multi-word entries
+                    }) || sanitized.chars().count() < 2
+                    // No single character entries
+                    {
+                        None
+                    } else {
+                        Some(sanitized.into())
+                    }
                 }
-            })
+                None => None,
+            }
         })
-        .flatten()
         .collect();
 
     println!("Raw SJP OK");
@@ -54,13 +57,14 @@ fn main() -> Result<(), ErrBox> {
     );
 
     // env_logger::init();
+
     for (idx, sjp_word) in sjp_sanitized_len_sorted.iter().enumerate() {
         gen.add_word_root(&sjp_word.0)?;
 
-	// Don't hog I/O for the progress bar
+        // Don't hog I/O for the progress bar
         if idx % 1000 == 0 {
             bar.set_message(sjp_word.0.clone());
-	    bar.inc(1000);
+            bar.inc(1000);
         }
     }
 
@@ -81,7 +85,8 @@ fn main() -> Result<(), ErrBox> {
 
         match gen.add_word_root(&line_buf) {
             Ok(chords) => {
-                println!("Chords: {}", chords.to_string());
+		println!("Chords: {}", chords.print_chords());
+                println!("Full expansion: {}", chords.to_string());
             }
             Err(e) => {
                 error!("{}", e.to_string());
