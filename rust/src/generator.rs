@@ -117,10 +117,10 @@ impl Generator {
         trace!("ATTEMPT PREFIX");
         // Find all prefix matches
         if let Some((pref_str, pref_chord)) =
-            find_longest_affix(&word_root, &self.prefixes_len_sorted, 3, true)
+            find_longest_affix(&word_root, &self.prefixes_len_sorted, 2, true)
         {
             debug!("REDUCE PREFIX:\t{}-", pref_str);
-            word_root = word_root.trim_start_matches(&pref_str).to_string();
+            word_root = word_root.strip_prefix(&pref_str).unwrap().to_string();
             prefix = Some(ChordSeqItem::Prefix(
                 pref_str.clone().into(),
                 pref_chord.clone(),
@@ -132,10 +132,10 @@ impl Generator {
         trace!("ATTEMPT SUFFIX");
         // Find all suffix matches
         if let Some((suff_str, suff_chord)) =
-            find_longest_affix(&word_root, &self.suffixes_len_sorted, 3, false)
+            find_longest_affix(&word_root, &self.suffixes_len_sorted, 2, false)
         {
             trace!("REDUCE SUFFIX:\t-{}", suff_str,);
-            word_root = word_root.trim_end_matches(&suff_str).to_string();
+            word_root = word_root.strip_suffix(&suff_str).unwrap().to_string();
             suffix = Some(ChordSeqItem::Suffix(
                 suff_str.clone().into(),
                 suff_chord.clone(),
@@ -163,16 +163,17 @@ impl Generator {
             let mut current_chord_str = "".to_string();
             let mut ch = Chord::default();
 
-	    let mut roots_found = false;
+            let mut roots_found = false;
 
             trace!("ATTEMPT KNOWN-ROOT");
             // Find longest existing root within this one
             while let Some((known_root_str, known_root_chords)) =
                 find_longest_affix(&remaining_root_chars, &self.word_root_dict, 3, true)
             {
-		roots_found = true;
+                roots_found = true;
                 remaining_root_chars = remaining_root_chars
-                    .trim_start_matches(known_root_str.as_str())
+                    .strip_prefix(known_root_str.as_str())
+                    .unwrap()
                     .to_string();
 
                 debug!(
@@ -197,7 +198,8 @@ impl Generator {
                     Ok(()) => {
                         current_chord_str.push_str(&lh_str);
                         remaining_root_chars = remaining_root_chars
-                            .trim_start_matches(lh_str.as_str())
+                            .strip_prefix(lh_str.as_str())
+                            .unwrap()
                             .to_string();
                         debug!("REDUCE LEFT-HAND:\t{} ({}) ", lh_str, new_part.to_string());
                     }
@@ -209,38 +211,39 @@ impl Generator {
 
             trace!("ATTEMPT CENTER");
             // Find center match
-            if let Some((center_str, center_chord)) =
-                find_longest_affix(&remaining_root_chars, &self.center_combos_len_sorted, 1, true)
-            {
+            while let Some((center_str, center_chord)) = find_longest_affix(
+                &remaining_root_chars,
+                &self.center_combos_len_sorted,
+                1,
+                true,
+            ) {
                 let new_part: Chord = center_chord;
 
                 match ch.merge(&new_part) {
                     Ok(()) => {
                         current_chord_str.push_str(&center_str);
                         remaining_root_chars = remaining_root_chars
-                            .trim_start_matches(center_str.as_str())
+                            .strip_prefix(center_str.as_str())
+                            .unwrap()
                             .to_string();
                         debug!("REDUCE CENTER:\t{} ({}) ", center_str, new_part.to_string());
                     }
                     Err(_e) => {
                         debug!(
                             "CONFLICT CENTER:\t{} + {}, {} + {}",
-                            word_root.trim_end_matches(&remaining_root_chars),
+                            word_root.strip_suffix(&remaining_root_chars).unwrap(),
                             center_str,
                             ch.to_string(),
                             new_part.to_string(),
                         );
-                        root_chords
-                            .items
-                            .push(ChordSeqItem::RootChord(current_chord_str, ch));
-                        continue 'is_empty;
+                        break;
                     }
                 }
             }
 
             trace!("ATTEMPT RIGHT_HAND");
             // Find right-hand match
-            if let Some((rh_str, rh_chord)) =
+            while let Some((rh_str, rh_chord)) =
                 find_longest_affix(&remaining_root_chars, &self.rh_combos_len_sorted, 1, true)
             {
                 let new_part: Chord = rh_chord;
@@ -249,29 +252,27 @@ impl Generator {
                     Ok(()) => {
                         current_chord_str.push_str(&rh_str);
                         remaining_root_chars = remaining_root_chars
-                            .trim_start_matches(rh_str.as_str())
+                            .strip_prefix(rh_str.as_str())
+                            .unwrap()
                             .to_string();
                         debug!("REDUCE RIGHT_HAND:\t{} ({}) ", rh_str, new_part.to_string());
                     }
                     Err(_e) => {
                         debug!(
                             "CONFLICT RIGHT-HAND:\t{} + {}, {} + {}",
-                            word_root.trim_end_matches(&remaining_root_chars),
+                            word_root.strip_suffix(&remaining_root_chars).unwrap(),
                             rh_str,
                             ch.to_string(),
                             new_part.to_string(),
                         );
-                        root_chords
-                            .items
-                            .push(ChordSeqItem::RootChord(current_chord_str, ch));
-                        continue 'is_empty;
+                        break;
                     }
                 }
             }
 
             if ch == Chord::default() && !roots_found {
                 error!("INFINITE-LOOP: {}, {} left", word, remaining_root_chars);
-		return Err(format!("infinite loop on {}", word).into());
+                return Err(format!("infinite loop on {}", word).into());
             }
 
             root_chords
