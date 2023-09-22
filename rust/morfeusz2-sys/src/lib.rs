@@ -1,4 +1,4 @@
-use autocxx::{prelude::*, subclass::subclass};
+use autocxx::{prelude::*, subclass::subclass, moveit::MakeCppStorage};
 
 include_cpp! {
     #include "morfeusz2.h"
@@ -6,11 +6,10 @@ include_cpp! {
     generate_ns!("morfeusz")
 }
 
-pub use ffi::morfeusz;
 
-#[subclass(superclass("morfeusz::MorphInterpretation"))]
-pub struct MorphInterpretation {
-}
+use std::pin::Pin;
+
+pub use ffi::morfeusz;
 
 #[cfg(test)]
 pub mod test {
@@ -27,12 +26,22 @@ pub mod test {
         };
 
         cxx::let_cxx_string!(input = "wlazł kotek na płotek");
-        let res = morf_ref.analyse(&input);
+        let mut result_ptr = unsafe {UniquePtr::from_raw(morf_ref.analyse(&input))};
 
-        while res.hasNext() {
-            let morph = res.next();
+        unsafe {
+	    while result_ptr.pin_mut().hasNext() {
+		println!("Iteratin' this boiii");
+		let next = result_ptr.pin_mut().next().within_unique_ptr();
 
-            morph.getName
-        }
+		println!("isIgn: {}", next.isIgn());
+		println!("isWhitespace: {}", next.isWhitespace());
+            }
+
+	    let resolver = morf_ref.getIdResolver();
+
+	    let tag_cnt = resolver.getTagsCount();
+
+	    println!("Got {} tags", tag_cnt);
+	}
     }
 }
