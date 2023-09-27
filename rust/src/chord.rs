@@ -128,14 +128,27 @@ impl Chord {
             .into());
         }
 
-        for (self_key, other_key) in self
-            .as_mut_vec()
+	let mut new = Self::default();
+
+        for ((self_key, other_key), new_key) in self
+            .as_vec()
             .into_iter()
             .zip(other.as_vec().into_iter())
+            .zip(new.as_mut_vec().into_iter())
         {
-            *self_key = *self_key ^ other_key;
+            *new_key = *self_key ^ other_key;
         }
+
+	// Check for invalid three- and four-key combinations
+	new.validate()?;
+
+	*self = new;
         Ok(())
+    }
+
+    fn validate(&self) -> Result<(), ErrBox> {
+
+	Ok(())
     }
 
     pub fn full_steno_order() -> Self {
