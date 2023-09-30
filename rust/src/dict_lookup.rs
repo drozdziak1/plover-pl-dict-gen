@@ -2489,6 +2489,16 @@ pub static SPECIAL_CHARS: phf::Map<&'static str, &'static str> = phf::phf_map! {
     "<speaker10>" => "ZKSTPVLR-Y",
 };
 
+// Contains words like "pralina" which shouldn't use "pra-" like "pradziadek"
+pub static PREFIX_EXCEPTIONS: phf::Set<&'static str> = phf::phf_set! {
+    "pralina",
+};
+
+// Contains words like "przepych" which shouldn't use "-ych" like "biernych"
+pub static SUFFIX_EXCEPTIONS: phf::Set<&'static str> = phf::phf_set! {
+    "przepych"
+};
+
 pub static SJP_DICT: &'static str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/odm.txt"));
 
 pub static PL_DIACRITICS: &'static str = "ąćęłńóśźż";
