@@ -1,4 +1,5 @@
 use log::{debug, error, info, trace, warn};
+use regex::Regex;
 
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -325,4 +326,51 @@ pub fn find_longest_affix<const ASC: bool, T: Clone>(
         trace!("MISS {}", slice_string);
     }
     None
+}
+
+pub fn syllable_split(word: &str) -> Vec<String> {
+    let re = Regex::new(r"[^aąeęioóuy]*(ia|ią|ie|ię|io|iu|ió|au|eu|a|e|i|o|u|y)").unwrap();
+
+    let mut matches: Vec<_> = re.find_iter(word).map(|m| m.as_str().to_owned()).collect();
+
+    let split = re.split(word).collect::<Vec<_>>();
+
+    // If the word ends with consonant(s), we add them to the final syllable
+    match (matches.iter_mut().last(), split.iter().last()) {
+        (Some(last_match), Some(last_split)) => {
+            last_match.push_str(last_split);
+        }
+        // Edge case: word has no vowels, use as is
+        (None, Some(last_split)) => {
+            matches = vec![last_split.to_string()];
+        }
+        _other => {}
+    }
+
+    matches
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_syllable_split_simple() {
+        env_logger::init();
+
+        assert_eq!(
+            syllable_split("przebiegłość"),
+            vec!["prze", "bie", "głość"].to_owned()
+        );
+        assert_eq!(
+            syllable_split("wyniosły"),
+            vec!["wy", "nio", "sły"].to_owned()
+        );
+        assert_eq!(syllable_split("aorta"), vec!["a", "o", "rta"].to_owned());
+        assert_eq!(syllable_split("towot"), vec!["to", "wot"].to_owned());
+        assert_eq!(
+            syllable_split("dodekahedron"),
+            vec!["do", "de", "ka", "he", "dron"].to_owned()
+        );
+    }
 }
