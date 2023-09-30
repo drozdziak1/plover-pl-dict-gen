@@ -117,33 +117,41 @@ impl Generator {
 
         trace!("ATTEMPT PREFIX");
         // Find all prefix matches
-        if let Some((pref_str, pref_chord)) =
-            find_longest_affix(&word_root, &self.prefixes_len_sorted, 2, true)
-        {
-            debug!("REDUCE PREFIX:\t{}-", pref_str);
-            word_root = word_root.strip_prefix(&pref_str).unwrap().to_string();
-            prefix = Some(ChordSeqItem::Prefix(
-                pref_str.clone().into(),
-                pref_chord.clone(),
-            ));
-        }
+        if !dict_lookup::PREFIX_EXCEPTIONS.contains(&word_root) {
+            if let Some((pref_str, pref_chord)) =
+                find_longest_affix(&word_root, &self.prefixes_len_sorted, 2, true)
+            {
+                debug!("REDUCE PREFIX:\t{}-", pref_str);
+                word_root = word_root.strip_prefix(&pref_str).unwrap().to_string();
+                prefix = Some(ChordSeqItem::Prefix(
+                    pref_str.clone().into(),
+                    pref_chord.clone(),
+                ));
+            }
+        } else {
+	    trace!("SKIP PREFIX EXCEPTION");
+	}
 
         let mut suffix: Option<ChordSeqItem> = None;
 
         trace!("ATTEMPT SUFFIX");
         // Find all suffix matches
-        if let Some((suff_str, suff_chord)) =
-            find_longest_affix(&word_root, &self.suffixes_len_sorted, 2, false)
-        {
-            trace!("REDUCE SUFFIX:\t-{}", suff_str,);
-            word_root = word_root.strip_suffix(&suff_str).unwrap().to_string();
-            suffix = Some(ChordSeqItem::Suffix(
-                suff_str.clone().into(),
-                suff_chord.clone(),
-            ));
-        }
+        if !dict_lookup::SUFFIX_EXCEPTIONS.contains(&word_root) {
+            if let Some((suff_str, suff_chord)) =
+                find_longest_affix(&word_root, &self.suffixes_len_sorted, 2, false)
+            {
+                trace!("REDUCE SUFFIX:\t-{}", suff_str,);
+                word_root = word_root.strip_suffix(&suff_str).unwrap().to_string();
+                suffix = Some(ChordSeqItem::Suffix(
+                    suff_str.clone().into(),
+                    suff_chord.clone(),
+                ));
+            }
+        } else {
+	    trace!("SKIP SUFFIX EXCEPTION");
+	}
 
-        // Skip word roots achievable with prefixes/suffixes only
+        // Some word roots are achievable with prefixes/suffixes only, which means they should not 
         if word_root.is_empty() {
             debug!("SKIP CONSUMED:\t{}", word);
         }
