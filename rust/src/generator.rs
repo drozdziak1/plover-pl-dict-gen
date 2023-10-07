@@ -17,6 +17,7 @@ pub struct Generator {
     center_combos_len_sorted: BTreeMap<LenSortableString<false>, Chord>,
     rh_combos_len_sorted: BTreeMap<LenSortableString<false>, Chord>,
     pub word_root_dict: BTreeMap<LenSortableString<false>, ChordSequence>,
+    chunk_dict: BTreeMap<LenSortableString<false>, ChordSequence>,
 }
 
 impl Generator {
@@ -67,6 +68,8 @@ impl Generator {
                 })
                 .collect::<Result<_, _>>()?;
 
+        let chunk_dict: BTreeMap<LenSortableString<false>, ChordSequence> = Default::default();
+
         Ok(Self {
             prefixes_len_sorted,
             suffixes_len_sorted,
@@ -74,15 +77,16 @@ impl Generator {
             center_combos_len_sorted,
             rh_combos_len_sorted,
             word_root_dict,
+            chunk_dict,
         })
     }
 
     /// NOTE: Only root recipe is added to the dictionary, but the
     /// complete chord set is returned.
     pub fn add_word_root(&mut self, word: &str) -> Result<ChordSequence, ErrBox> {
-        let chords = self.gen_word_chords(word)?;
-        let mut root_chords = chords.clone();
-        root_chords.items = chords
+        let (word_chords, chunk_chords) = self.gen_word_chords(word)?;
+        let mut root_chords = word_chords.clone();
+        root_chords.items = word_chords
             .items
             .iter()
             .filter_map(|item| match item {
@@ -94,11 +98,18 @@ impl Generator {
 
         self.word_root_dict
             .insert(root_chords.get_word().into(), root_chords.clone());
-        Ok(chords)
+        for chunk in chunk_chords {
+            self.chunk_dict
+                .insert(chunk.get_word().into(), chunk.clone());
+        }
+        Ok(word_chords)
     }
 
-    /// Returns Err on sanitization problems
-    pub fn gen_word_chords(&self, word: &str) -> Result<ChordSequence, ErrBox> {
+    /// Generate
+    pub fn gen_word_chords(
+        &self,
+        word: &str,
+    ) -> Result<(ChordSequence, Vec<ChordSequence>), ErrBox> {
         let word = word.trim().to_lowercase();
 
         // Sanitize
@@ -129,8 +140,8 @@ impl Generator {
                 ));
             }
         } else {
-	    trace!("SKIP PREFIX EXCEPTION");
-	}
+            trace!("SKIP PREFIX EXCEPTION");
+        }
 
         let mut suffix: Option<ChordSeqItem> = None;
 
@@ -140,7 +151,7 @@ impl Generator {
             if let Some((suff_str, suff_chord)) =
                 find_longest_affix(&word_root, &self.suffixes_len_sorted, 2, false)
             {
-                trace!("REDUCE SUFFIX:\t-{}", suff_str,);
+                debug!("REDUCE SUFFIX:\t-{}", suff_str,);
                 word_root = word_root.strip_suffix(&suff_str).unwrap().to_string();
                 suffix = Some(ChordSeqItem::Suffix(
                     suff_str.clone().into(),
@@ -148,65 +159,69 @@ impl Generator {
                 ));
             }
         } else {
-	    trace!("SKIP SUFFIX EXCEPTION");
-	}
-
-        // Some word roots are achievable with prefixes/suffixes only, which means they should not 
-        if word_root.is_empty() {
-            debug!("SKIP CONSUMED:\t{}", word);
+            trace!("SKIP SUFFIX EXCEPTION");
         }
 
-        let mut remaining_root_chars = word_root.clone();
+        let mut root_chords = Vec::new();
+        let mut new_chunks = Vec::new();
 
-        // Skip exact existing word root matches
-        let mut root_chords: ChordSequence =
-            if let Some(chords) = self.word_root_dict.get(&word_root.clone().into()) {
-                debug!("SKIP EXACT-ROOT:\t{}, {}", word_root, chords.to_string());
-                remaining_root_chars = "".to_string();
-                chords.clone()
-            } else {
-                ChordSequence::new(vec![])
-            };
+        if let Some(chords) = self.word_root_dict.get(&word_root.clone().into()).cloned() {
+            debug!("SKIP EXACT-ROOT:\t{} ({})", word_root, chords.to_string());
+            root_chords = chords.items;
+        } else {
+            for chunk in syllable_split(&word_root) {
+                let mut chunk_chords = if let Some(chunk_chords) =
+                    self.chunk_dict.get(&chunk.clone().into()).cloned()
+                {
+                    debug!(
+                        "SKIP EXACT-CHUNK:\t{} ({})",
+                        chunk,
+                        chunk_chords.to_string()
+                    );
+                    chunk_chords
+                } else {
+                    let chunk_chords = self.gen_chunk_chords(&chunk)?;
+                    // This is an unknown chunk, add it to new chunks
+                    new_chunks.push(chunk_chords.clone());
+                    chunk_chords
+                };
 
-        'is_empty: while !remaining_root_chars.is_empty() {
+                root_chords.append(&mut chunk_chords.items);
+            }
+        }
+
+        let chords: Vec<_> = prefix
+            .into_iter()
+            .chain(root_chords.into_iter())
+            .chain(suffix.into_iter())
+            .collect();
+
+        Ok((ChordSequence::new(chords), new_chunks))
+    }
+
+    /// Returns Err on sanitization problems
+    pub fn gen_chunk_chords(&self, chunk: &str) -> Result<ChordSequence, ErrBox> {
+        debug!("CHUNK: {}", chunk);
+
+        let mut remaining_chunk_chars = chunk.to_owned();
+
+        let mut chunk_chords: ChordSequence = ChordSequence::new(vec![]);
+
+        while !remaining_chunk_chars.is_empty() {
             let mut current_chord_str = "".to_string();
             let mut ch = Chord::default();
-
-            let mut roots_found = false;
-
-            trace!("ATTEMPT KNOWN-ROOT");
-            // Find longest existing root within this one
-            while let Some((known_root_str, known_root_chords)) =
-                find_longest_affix(&remaining_root_chars, &self.word_root_dict, 3, true)
-            {
-                roots_found = true;
-                remaining_root_chars = remaining_root_chars
-                    .strip_prefix(known_root_str.as_str())
-                    .unwrap()
-                    .to_string();
-
-                debug!(
-                    "REDUCE KNOWN-ROOT:\t{} ({})",
-                    known_root_str,
-                    known_root_chords.to_string(),
-                );
-                root_chords.items.push(ChordSeqItem::KnownRootEntry(
-                    known_root_str.to_string(),
-                    known_root_chords,
-                ));
-            }
 
             trace!("ATTEMPT LEFT-HAND");
             // Find longest left-hand cluster
             if let Some((lh_str, lh_chord)) =
-                find_longest_affix(&remaining_root_chars, &self.lh_combos_len_sorted, 1, true)
+                find_longest_affix(&remaining_chunk_chars, &self.lh_combos_len_sorted, 1, true)
             {
                 let new_part: Chord = lh_chord;
 
                 match ch.merge(&new_part) {
                     Ok(()) => {
                         current_chord_str.push_str(&lh_str);
-                        remaining_root_chars = remaining_root_chars
+                        remaining_chunk_chars = remaining_chunk_chars
                             .strip_prefix(lh_str.as_str())
                             .unwrap()
                             .to_string();
@@ -221,7 +236,7 @@ impl Generator {
             trace!("ATTEMPT CENTER");
             // Find center match
             while let Some((center_str, center_chord)) = find_longest_affix(
-                &remaining_root_chars,
+                &remaining_chunk_chars,
                 &self.center_combos_len_sorted,
                 1,
                 true,
@@ -231,7 +246,7 @@ impl Generator {
                 match ch.merge(&new_part) {
                     Ok(()) => {
                         current_chord_str.push_str(&center_str);
-                        remaining_root_chars = remaining_root_chars
+                        remaining_chunk_chars = remaining_chunk_chars
                             .strip_prefix(center_str.as_str())
                             .unwrap()
                             .to_string();
@@ -240,7 +255,7 @@ impl Generator {
                     Err(_e) => {
                         debug!(
                             "CONFLICT CENTER:\t{} + {}, {} + {}",
-                            word_root.strip_suffix(&remaining_root_chars).unwrap(),
+                            chunk.strip_suffix(&remaining_chunk_chars).unwrap(),
                             center_str,
                             ch.to_string(),
                             new_part.to_string(),
@@ -253,14 +268,14 @@ impl Generator {
             trace!("ATTEMPT RIGHT_HAND");
             // Find right-hand match
             while let Some((rh_str, rh_chord)) =
-                find_longest_affix(&remaining_root_chars, &self.rh_combos_len_sorted, 1, true)
+                find_longest_affix(&remaining_chunk_chars, &self.rh_combos_len_sorted, 1, true)
             {
                 let new_part: Chord = rh_chord;
 
                 match ch.merge(&new_part) {
                     Ok(()) => {
                         current_chord_str.push_str(&rh_str);
-                        remaining_root_chars = remaining_root_chars
+                        remaining_chunk_chars = remaining_chunk_chars
                             .strip_prefix(rh_str.as_str())
                             .unwrap()
                             .to_string();
@@ -269,7 +284,7 @@ impl Generator {
                     Err(_e) => {
                         debug!(
                             "CONFLICT RIGHT-HAND:\t{} + {}, {} + {}",
-                            word_root.strip_suffix(&remaining_root_chars).unwrap(),
+                            chunk.strip_suffix(&remaining_chunk_chars).unwrap(),
                             rh_str,
                             ch.to_string(),
                             new_part.to_string(),
@@ -279,23 +294,17 @@ impl Generator {
                 }
             }
 
-            if ch == Chord::default() && !roots_found {
-                error!("INFINITE-LOOP: {}, {} left", word, remaining_root_chars);
-                return Err(format!("infinite loop on {}", word).into());
+            if ch == Chord::default() {
+                error!("INFINITE-LOOP: {}, {} left", chunk, remaining_chunk_chars);
+                return Err(format!("infinite loop on {}", chunk).into());
             }
 
-            root_chords
+            chunk_chords
                 .items
                 .push(ChordSeqItem::RootChord(current_chord_str, ch));
         }
 
-        let v: Vec<_> = prefix
-            .into_iter()
-            .chain(root_chords.items.into_iter())
-            .chain(suffix.into_iter())
-            .collect();
-
-        Ok(ChordSequence::new(v))
+        Ok(chunk_chords)
     }
 }
 
@@ -337,7 +346,7 @@ pub fn find_longest_affix<const ASC: bool, T: Clone>(
 }
 
 pub fn syllable_split(word: &str) -> Vec<String> {
-    let re = Regex::new(r"[^aąeęioóuy]*(ia|ią|ie|ię|io|iu|ió|au|eu|a|e|i|o|u|y)").unwrap();
+    let re = Regex::new(r"[^aąeęioóuy]*(ia|ią|ie|ię|io|iu|ió|au|eu|a|ą|e|ę|i|o|ó|u|y)").unwrap();
 
     let mut matches: Vec<_> = re.find_iter(word).map(|m| m.as_str().to_owned()).collect();
 
@@ -380,5 +389,6 @@ mod test {
             syllable_split("dodekahedron"),
             vec!["do", "de", "ka", "he", "dron"].to_owned()
         );
+        assert_eq!(syllable_split("kościół"), vec!["ko", "ściół"].to_owned());
     }
 }
