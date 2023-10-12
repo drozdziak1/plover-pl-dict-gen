@@ -16,6 +16,7 @@ pub static LEFT_HAND_COMBOS: phf::Map<&'static str, &'static str> = phf::phf_map
     "l" => "L-",
     "r" => "R-",
     "n" => "LR-",
+    "m" => "KP-",
 
     // page 29 - occuring primarily at the beginning of the word, mostly in borrowings
     "au" => "EA",
