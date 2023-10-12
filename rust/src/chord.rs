@@ -5,9 +5,7 @@ use crate::ErrBox;
 /// Middle keys and hyphen - They help us disambiguate left/right keys
 const MID_CHARACTERS: &'static str = "JE~*IAU-";
 
-const INVALID_CHORDS: &'static [&'static str] = &[
-    "XS", "FZ", "L*C", "R~R", "-TY", "-WO","JIU",
-];
+const INVALID_CHORDS: &'static [&'static str] = &["XS", "FZ", "L*C", "R~R", "-TY", "-WO", "JIU"];
 
 #[derive(Default, Clone, Debug, PartialEq, Eq)]
 pub struct Chord {

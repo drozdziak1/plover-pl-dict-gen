@@ -86,7 +86,7 @@ fn main() -> Result<(), ErrBox> {
 
         match gen.add_word_root(&line_buf) {
             Ok(chords) => {
-		println!("Chords: {}", chords.print_chords());
+                println!("Chords: {}", chords.print_chords());
                 println!("Full expansion: {}", chords.to_string());
             }
             Err(e) => {

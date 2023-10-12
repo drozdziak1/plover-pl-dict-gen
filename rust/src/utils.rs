@@ -1,4 +1,7 @@
-use std::{cmp::{Eq, Ordering, PartialEq}, fmt::{Display, Debug}};
+use std::{
+    cmp::{Eq, Ordering, PartialEq},
+    fmt::{Debug, Display},
+};
 
 pub type ErrBox = Box<dyn std::error::Error>;
 
