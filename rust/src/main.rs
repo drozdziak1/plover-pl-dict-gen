@@ -72,6 +72,7 @@ fn main() -> Result<(), ErrBox> {
 
     println!("SJP processing OK");
     println!("{} distinct word roots created", gen.word_root_dict.len());
+    println!("{} distinct word chunks created", gen.chunk_dict.len());
 
     let stdin = io::stdin();
 

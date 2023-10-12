@@ -17,7 +17,7 @@ pub struct Generator {
     center_combos_len_sorted: BTreeMap<LenSortableString<false>, Chord>,
     rh_combos_len_sorted: BTreeMap<LenSortableString<false>, Chord>,
     pub word_root_dict: BTreeMap<LenSortableString<false>, ChordSequence>,
-    chunk_dict: BTreeMap<LenSortableString<false>, ChordSequence>,
+    pub chunk_dict: BTreeMap<LenSortableString<false>, ChordSequence>,
 }
 
 impl Generator {
