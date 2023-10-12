@@ -227,7 +227,8 @@ impl Generator {
                             .to_string();
                         debug!("REDUCE LEFT-HAND:\t{} ({}) ", lh_str, new_part.to_string());
                     }
-                    Err(_e) => {
+                    Err(e) => {
+			error!("LEFT-HAND ERROR: {}", e.to_string());
                         unreachable!();
                     }
                 }

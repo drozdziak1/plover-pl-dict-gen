@@ -3,7 +3,11 @@ use std::{fmt::Debug, str::FromStr};
 use crate::ErrBox;
 
 /// Middle keys and hyphen - They help us disambiguate left/right keys
-static MID_CHARACTERS: &'static str = "JE~*IAU-";
+const MID_CHARACTERS: &'static str = "JE~*IAU-";
+
+const INVALID_CHORDS: &'static [&'static str] = &[
+    "XS", "FZ", "L*C", "R~R", "-TY", "-WO","JIU",
+];
 
 #[derive(Default, Clone, Debug, PartialEq, Eq)]
 pub struct Chord {
@@ -121,14 +125,14 @@ impl Chord {
             .any(|(self_key, other_key)| *self_key && *other_key)
         {
             return Err(format!(
-                "Conflicting entries between {} and {}",
+                "Duplicate keys between {} and {}",
                 self.to_string(),
                 other.to_string()
             )
             .into());
         }
 
-	let mut new = Self::default();
+        let mut new = Self::default();
 
         for ((self_key, other_key), new_key) in self
             .as_vec()
@@ -139,16 +143,26 @@ impl Chord {
             *new_key = *self_key ^ other_key;
         }
 
-	// Check for invalid three- and four-key combinations
-	new.validate()?;
+        // Check for invalid three- and four-key combinations
+        new.validate()?;
 
-	*self = new;
+        *self = new;
         Ok(())
     }
 
-    fn validate(&self) -> Result<(), ErrBox> {
+    pub fn contains(&self, other: &Self) -> bool {
+        let zipped = self.as_vec().into_iter().zip(other.as_vec().into_iter());
 
-	Ok(())
+        let mut result = true;
+        for (self_key, other_key) in zipped {
+            // other has key set but self does not, bail out
+            if *other_key && !*self_key {
+                result = false;
+                break;
+            }
+        }
+
+        result
     }
 
     pub fn full_steno_order() -> Self {
@@ -160,6 +174,21 @@ impl Chord {
 
         ret
     }
+
+    fn validate(&self) -> Result<(), ErrBox> {
+        for ch_str in INVALID_CHORDS {
+            let ch = Chord::from_str(ch_str)?;
+
+            if self.contains(&ch) {
+                return Err(format!(
+                    "Invalid chord: contains invalid combination {}",
+                    ch.to_string()
+                )
+                .into());
+            }
+        }
+        Ok(())
+    }
 }
 
 impl FromStr for Chord {
@@ -170,137 +199,94 @@ impl FromStr for Chord {
         let mut left_hand = true; // Are we still adding left-hand chars?
         for ch in s.to_uppercase().chars() {
             match ch {
-                'X' => ret.merge(&Chord {
-                    x: true,
-                    ..Default::default()
-                })?,
-                'F' => ret.merge(&Chord {
-                    f: true,
-                    ..Default::default()
-                })?,
-                'Z' => ret.merge(&Chord {
-                    z: true,
-                    ..Default::default()
-                })?,
+                'X' => {
+                    ret.x = true;
+                }
+                'F' => {
+                    ret.f = true;
+                }
+                'Z' => {
+                    ret.z = true;
+                }
                 'S' => {
                     if left_hand {
-                        ret.merge(&Chord {
-                            s_left: true,
-                            ..Default::default()
-                        })?
+                        ret.s_left = true;
                     } else {
-                        ret.merge(&Chord {
-                            s_right: true,
-                            ..Default::default()
-                        })?
+                        ret.s_right = true;
                     }
                 }
-                'K' => ret.merge(&Chord {
-                    k: true,
-                    ..Default::default()
-                })?,
+                'K' => {
+                    ret.k = true;
+                }
                 'T' => {
                     if left_hand {
-                        ret.merge(&Chord {
-                            t_left: true,
-                            ..Default::default()
-                        })?
+                        ret.t_left = true;
                     } else {
-                        ret.merge(&Chord {
-                            t_right: true,
-                            ..Default::default()
-                        })?
+                        ret.t_right = true;
                     }
                 }
-                'P' => ret.merge(&Chord {
-                    p: true,
-                    ..Default::default()
-                })?,
-                'V' => ret.merge(&Chord {
-                    v: true,
-                    ..Default::default()
-                })?,
+                'P' => {
+                    ret.p = true;
+                }
+                'V' => {
+                    ret.v = true;
+                }
                 'L' => {
                     if left_hand {
-                        ret.merge(&Chord {
-                            l_left: true,
-                            ..Default::default()
-                        })?
+                        ret.l_left = true;
                     } else {
-                        ret.merge(&Chord {
-                            l_right: true,
-                            ..Default::default()
-                        })?
+                        ret.l_right = true;
                     }
                 }
                 'R' => {
                     if left_hand {
-                        ret.merge(&Chord {
-                            r_left: true,
-                            ..Default::default()
-                        })?
+                        ret.r_left = true;
                     } else {
-                        ret.merge(&Chord {
-                            r_right: true,
-                            ..Default::default()
-                        })?
+                        ret.r_right = true;
                     }
                 }
-                'J' => ret.merge(&Chord {
-                    j: true,
-                    ..Default::default()
-                })?,
-                'E' => ret.merge(&Chord {
-                    e: true,
-                    ..Default::default()
-                })?,
-                '~' => ret.merge(&Chord {
-                    tilde: true,
-                    ..Default::default()
-                })?,
-                '*' => ret.merge(&Chord {
-                    asterisk: true,
-                    ..Default::default()
-                })?,
-                'I' => ret.merge(&Chord {
-                    i: true,
-                    ..Default::default()
-                })?,
-                'A' => ret.merge(&Chord {
-                    a: true,
-                    ..Default::default()
-                })?,
-                'U' => ret.merge(&Chord {
-                    u: true,
-                    ..Default::default()
-                })?,
-                'C' => ret.merge(&Chord {
-                    c: true,
-                    ..Default::default()
-                })?,
+                'J' => {
+                    ret.j = true;
+                }
+                'E' => {
+                    ret.e = true;
+                }
+                '~' => {
+                    ret.tilde = true;
+                }
+                '*' => {
+                    ret.asterisk = true;
+                }
+                'I' => {
+                    ret.i = true;
+                }
+                'A' => {
+                    ret.a = true;
+                }
+                'U' => {
+                    ret.u = true;
+                }
+                'C' => {
+                    ret.c = true;
+                }
                 // L and R already handled above
-                'B' => ret.merge(&Chord {
-                    b: true,
-                    ..Default::default()
-                })?,
+                'B' => {
+                    ret.b = true;
+                }
                 // S handled above
-                'G' => ret.merge(&Chord {
-                    g: true,
-                    ..Default::default()
-                })?,
+                'G' => {
+                    ret.g = true;
+                }
                 // T handled above
-                'W' => ret.merge(&Chord {
-                    w: true,
-                    ..Default::default()
-                })?,
-                'O' => ret.merge(&Chord {
-                    o: true,
-                    ..Default::default()
-                })?,
-                'Y' => ret.merge(&Chord {
-                    y: true,
-                    ..Default::default()
-                })?,
+                'W' => {
+                    ret.w = true;
+                }
+                'O' => {
+                    ret.o = true;
+                }
+                'Y' => {
+                    ret.y = true;
+                }
                 // hyphen should only switch the left hand flag, which
                 // will happen automatically with the MID_CHARACTERS
                 // check
@@ -583,14 +569,16 @@ mod tests {
     }
 
     #[test]
-    fn test_chord_without_conflicts_merges() {
-        let mut a = Chord::default();
+    fn test_chord_without_conflicts_merges() -> Result<(), ErrBox> {
+        let mut a = Chord::from_str("XZKPLJE")?;
 
-        let b = Chord::full_steno_order();
+        let b = Chord::from_str("~ICLSTO")?;
 
-        assert!(a.merge(&b).is_ok());
+        a.merge(&b)?;
 
-        assert_eq!(a, b);
+        assert_eq!(&a.to_string(), "XZKPLJE~ICLSTO");
+
+        Ok(())
     }
 
     #[test]
@@ -603,6 +591,44 @@ mod tests {
         // Cross validate struct and generated string
         assert_eq!(parsed, full_steno);
         assert_eq!(&full_steno.to_string(), full_str);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_contains() {
+        let full_steno = Chord::full_steno_order();
+        let empty = Chord::default();
+
+        // Full steno order contains itself
+        assert!(full_steno.contains(&full_steno));
+
+        // Full steno contains empty chord
+        assert!(full_steno.contains(&empty));
+
+        // Empty chord contains itself
+        assert!(empty.contains(&empty));
+
+        // Empty chord does not contain full steno
+        assert!(!empty.contains(&full_steno));
+    }
+
+    #[test]
+    fn test_validate() -> Result<(), ErrBox> {
+        let full_steno = Chord::full_steno_order();
+        let empty = Chord::default();
+
+        // Full is never valid
+        assert!(full_steno.validate().is_err());
+
+        // Empty is always valid
+        empty.validate()?;
+
+        // Each of the invalid combos is always invalid
+        for invalid_str in INVALID_CHORDS {
+            let invalid = Chord::from_str(invalid_str)?;
+            assert!(invalid.validate().is_err());
+        }
 
         Ok(())
     }
