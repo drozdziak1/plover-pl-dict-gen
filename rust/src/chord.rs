@@ -533,9 +533,9 @@ impl ChordSeqItem {
 impl ToString for ChordSeqItem {
     fn to_string(&self) -> String {
         match self {
-            Self::RootChord(s, ch) => format!("RC:{:?}:{}", s, ch.to_string()),
-            Self::Prefix(s, ch) => format!("P:{}-:{}", s, ch.to_string()),
-            Self::Suffix(s, ch) => format!("S:-{}:{}", s, ch.to_string()),
+            Self::RootChord(s, ch) => format!("RC:\"{}\":{}", s, ch.to_string()),
+            Self::Prefix(s, ch) => format!("P:\"{}-\":{}", s, ch.to_string()),
+            Self::Suffix(s, ch) => format!("S:\"-{}\":{}", s, ch.to_string()),
         }
     }
 }
