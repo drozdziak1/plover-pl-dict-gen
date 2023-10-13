@@ -471,14 +471,7 @@ impl ChordSequence {
     }
 
     pub fn is_oneshot(&self) -> bool {
-        if self.items.len() == 1 {
-            match &self.items[0] {
-                ChordSeqItem::KnownRootEntry(_s, seq) => seq.is_oneshot(),
-                _other => true,
-            }
-        } else {
-            false
-        }
+	self.items.len() == 1
     }
 
     /// Re-assembles the word from sequence items
@@ -488,7 +481,6 @@ impl ChordSequence {
         for item in self.items.iter() {
             let s = match item {
                 ChordSeqItem::RootChord(s, _)
-                | ChordSeqItem::KnownRootEntry(s, _)
                 | ChordSeqItem::Prefix(s, _)
                 | ChordSeqItem::Suffix(s, _) => s,
             };
@@ -524,7 +516,6 @@ impl ToString for ChordSequence {
 #[derive(Clone, Eq, PartialEq)]
 pub enum ChordSeqItem {
     RootChord(String, Chord),
-    KnownRootEntry(String, ChordSequence),
     Prefix(String, Chord),
     Suffix(String, Chord),
 }
@@ -533,7 +524,6 @@ impl ChordSeqItem {
     pub fn collapse(&self) -> Vec<Chord> {
         match self {
             Self::RootChord(_s, chord) => vec![chord.clone()],
-            Self::KnownRootEntry(_s, seq) => seq.collapse(),
             Self::Prefix(_s, chord) => vec![chord.clone()],
             Self::Suffix(_s, chord) => vec![chord.clone()],
         }
@@ -544,7 +534,6 @@ impl ToString for ChordSeqItem {
     fn to_string(&self) -> String {
         match self {
             Self::RootChord(s, ch) => format!("RC:{:?}:{}", s, ch.to_string()),
-            Self::KnownRootEntry(s, chords) => format!("KR:{:?}:({})", s, chords.to_string(),),
             Self::Prefix(s, ch) => format!("P:{}-:{}", s, ch.to_string()),
             Self::Suffix(s, ch) => format!("S:-{}:{}", s, ch.to_string()),
         }

@@ -90,7 +90,7 @@ impl Generator {
             .items
             .iter()
             .filter_map(|item| match item {
-                &ChordSeqItem::KnownRootEntry(_, _) | &ChordSeqItem::RootChord(_, _) => Some(item),
+                &ChordSeqItem::RootChord(_, _) => Some(item),
                 _other => None,
             })
             .cloned()
