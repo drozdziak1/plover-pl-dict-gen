@@ -17,7 +17,7 @@
     let
       rustVersion = "1.65.0";
       pkgs = import nixpkgs {
-        overlays = [ rust-overlay.overlays.default cargo2nix.overlays.default ];
+        overlays = [ rust-overlay.overlays.default cargo2nix.overlays.default];
         inherit system;
       };
       rustPkgs = pkgs.rustBuilder.makePackageSet {
@@ -35,6 +35,7 @@
             self.packages.${system}.morfeusz2
             pkgs.rust-bin.stable.${rustVersion}.default # 
             cargo2nix.outputs.packages.${system}.cargo2nix
+            (pkgs.libsForQt5.callPackage ./nix/packages/plover.nix { }).dev
           ];
         };
       packages = {
