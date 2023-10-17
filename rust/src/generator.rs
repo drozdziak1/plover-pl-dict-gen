@@ -213,7 +213,7 @@ impl Generator {
 
             trace!("ATTEMPT LEFT-HAND");
             // Find longest left-hand cluster
-            if let Some((lh_str, lh_chord)) =
+            while let Some((lh_str, lh_chord)) =
                 find_longest_affix(&remaining_chunk_chars, &self.lh_combos_len_sorted, 1, true)
             {
                 let new_part: Chord = lh_chord;
@@ -228,8 +228,8 @@ impl Generator {
                         debug!("REDUCE LEFT-HAND:\t{} ({}) ", lh_str, new_part.to_string());
                     }
                     Err(e) => {
-                        error!("LEFT-HAND ERROR: {}", e.to_string());
-                        unreachable!();
+                        debug!("CONFLICT LEFT-HAND: {}", e.to_string());
+			break;
                     }
                 }
             }
