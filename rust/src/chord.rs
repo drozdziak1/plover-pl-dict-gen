@@ -467,7 +467,7 @@ impl ChordSequence {
             .iter()
             .map(|ch| ch.to_string())
             .collect::<Vec<_>>()
-            .join(" + ");
+            .join("/");
     }
 
     pub fn is_oneshot(&self) -> bool {

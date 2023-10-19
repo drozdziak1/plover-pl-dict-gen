@@ -8,7 +8,7 @@ use {
     log::{error, info},
 };
 
-use std::{collections::BTreeSet, io};
+use std::{collections::BTreeSet, io, fs::File};
 
 use indicatif::ProgressStyle;
 
@@ -78,6 +78,14 @@ fn main() -> Result<(), ErrBox> {
 
     // display logging messages only after SJP processing
     env_logger::init();
+
+    let fname = "dict.json";
+
+    let f = File::create(fname)?;
+
+    gen.save_to_file(f)?;
+
+    println!("Wrote to {}", fname);
 
     loop {
         let mut line_buf = String::new();

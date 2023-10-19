@@ -1,7 +1,10 @@
 use log::{debug, error, info, trace, warn};
 use regex::Regex;
 
-use std::collections::{BTreeMap, BTreeSet};
+use std::{
+    collections::{BTreeMap, BTreeSet},
+    fs::File,
+};
 
 use crate::{
     chord::{Chord, ChordSeqItem, ChordSequence},
@@ -229,7 +232,7 @@ impl Generator {
                     }
                     Err(e) => {
                         debug!("CONFLICT LEFT-HAND: {}", e.to_string());
-			break;
+                        break;
                     }
                 }
             }
@@ -306,6 +309,31 @@ impl Generator {
         }
 
         Ok(chunk_chords)
+    }
+
+    pub fn save_to_file(&self, f: File) -> Result<(), ErrBox> {
+        let chunk_iter = self
+            .chunk_dict
+            .iter()
+            .map(|(s, ch_seq)| (ch_seq.print_chords(), LenSortableString::into(s.clone())));
+
+        let prefix_iter = self
+            .prefixes_len_sorted
+            .iter()
+            .map(|(s, ch)| (ch.to_string(),format!("{}{}", s, "{^}")));
+
+        let suffix_iter = self
+            .suffixes_len_sorted
+            .iter()
+            .map(|(s, ch)| ( ch.to_string(), format!("{}{}", "{^}", s)));
+
+        let zipped = chunk_iter.chain(prefix_iter).chain(suffix_iter);
+
+	let final_dict: BTreeMap<String, String> = zipped.collect();
+
+	serde_json::to_writer_pretty(f, &final_dict)?;
+
+        Ok(())
     }
 }
 
