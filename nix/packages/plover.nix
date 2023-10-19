@@ -53,7 +53,20 @@ let
     '';
   };
 
-  plover-plugins-manager = python3Packages.buildPythonPackage rec {
+  plover-polish-slowik = with python3Packages; buildPythonPackage rec {
+    pname = "plover_polish_slowik";
+    version = "0.0.1";
+    src = fetchFromGitHub {
+      owner = "flamenco108";
+      repo = "plover_polish_slowik";
+      rev = "18e1b63dc904631461d3babd379d69ca3e09a587";
+      sha256 = null;
+    };
+    propagatedBuildInputs = with python3Packages; [plover];
+
+  };
+
+  plover-plugins-manager = with python3Packages; mkDerivationWith buildPythonPackage rec {
     pname = "plover_plugins_manager";
     version = "0.7.1";
     pyproject = true;
@@ -62,7 +75,11 @@ let
       hash = "sha256-/RiWbGxPtm+0mhDi0heEVb6iBKuyBm6IOq2yrj17n9s=";
     };
     doCheck = false;
-    propagatedBuildInputs = with python3Packages; [plover readme_renderer requests-cache requests-futures pkginfo];
+    dontWrapQtApps = true;
+    propagatedBuildInputs = with python3Packages; [plover readme_renderer requests-cache requests-futures pkginfo wheel pip plover-polish-slowik];
+    preFixup = ''
+      makeWrapperArgs+=("''${qtWrapperArgs[@]}")
+    '';
   };
 
 in
