@@ -553,6 +553,7 @@ pub static CENTER_COMBOS: phf::Map<&'static str, &'static str> = phf::phf_map! {
     "a" => "A",
     "u" => "U",
     "o" => "AU", // Custom
+    "y" => "IAU",
 
     // page 30
     "ą" => "EAU",
