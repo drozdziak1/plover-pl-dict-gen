@@ -407,7 +407,11 @@ pub fn find_longest_affix<const ASC: bool, T: Clone>(
 }
 
 pub fn syllable_split(word: &str) -> Vec<String> {
-    let re = Regex::new(r"[^aąeęioóuy]*(ia|ią|ie|ię|io|iu|ió|au|eu|a|ą|e|ę|i|o|ó|u|y)").unwrap();
+    let consonant_substr =
+        "(ch|cz|dz|dź|sz|rz|b|c|ć|d|f|g|h|j|k|l|ł|m|n|ń|p|q|r|s|ś|t|v|w|x|z|ź|ż)";
+    let vowel_substr = "(ia|ią|ie|ię|io|iu|ió|au|eu|a|ą|e|ę|i|o|ó|u|y)";
+    let re_string = format!("{consonant_substr}*{vowel_substr}");
+    let re = Regex::new(&re_string).unwrap();
 
     let mut matches: Vec<_> = re.find_iter(word).map(|m| m.as_str().to_owned()).collect();
 
