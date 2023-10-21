@@ -1,4 +1,4 @@
-use std::{fmt::Debug, str::FromStr};
+use std::{fmt::Debug, str::FromStr, cmp::Ordering};
 
 use crate::ErrBox;
 
@@ -7,7 +7,7 @@ const MID_CHARACTERS: &'static str = "JE~*IAU-";
 
 const INVALID_CHORDS: &'static [&'static str] = &["XS", "FZ", "L*C", "R~R", "-TY", "-WO", "JIU"];
 
-#[derive(Default, Clone, Debug, PartialEq, Eq)]
+#[derive(Default, Clone, Debug, PartialEq, Eq, Ord, PartialOrd)]
 pub struct Chord {
     x: bool,
     f: bool,
@@ -437,7 +437,7 @@ impl ToString for Chord {
     }
 }
 
-#[derive(Clone, Eq, PartialEq)]
+#[derive(Clone, Eq, PartialEq, Ord, PartialOrd)]
 pub struct ChordSequence {
     pub items: Vec<ChordSeqItem>,
 }
@@ -513,7 +513,7 @@ impl ToString for ChordSequence {
     }
 }
 
-#[derive(Clone, Eq, PartialEq)]
+#[derive(Clone, Eq)]
 pub enum ChordSeqItem {
     RootChord(String, Chord),
     Prefix(String, Chord),
@@ -539,6 +539,25 @@ impl ToString for ChordSeqItem {
         }
     }
 }
+
+impl PartialEq for ChordSeqItem {
+    fn eq(&self, other: &ChordSeqItem) -> bool {
+	self.collapse().eq(&other.collapse())
+    }
+}
+
+impl PartialOrd for ChordSeqItem {
+    fn partial_cmp(&self, other: &ChordSeqItem) -> Option<Ordering> {
+	self.collapse().partial_cmp(&other.collapse())
+    }
+}
+
+impl Ord for ChordSeqItem {
+    fn cmp(&self, other: &ChordSeqItem) -> Ordering {
+	self.collapse().cmp(&other.collapse())
+    }
+}
+
 
 #[cfg(test)]
 mod tests {

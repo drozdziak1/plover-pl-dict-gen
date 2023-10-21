@@ -5,10 +5,10 @@ mod utils;
 
 use {
     indicatif::ProgressBar,
-    log::{error, info},
+    log::{debug, error, info},
 };
 
-use std::{collections::BTreeSet, io, fs::File};
+use std::{collections::BTreeSet, fs::File, io};
 
 use indicatif::ProgressStyle;
 
@@ -74,10 +74,54 @@ fn main() -> Result<(), ErrBox> {
     println!("{} distinct word roots created", gen.word_root_dict.len());
     println!("{} distinct word chunks created", gen.chunk_dict.len());
 
-    let stdin = io::stdin();
-
     // display logging messages only after SJP processing
     env_logger::init();
+
+    let mut chunk_conflicts_sorted_asc = Vec::new();
+    // Figure out the number of conflicting strokes
+    for (stroke, chunks) in gen.chunk_conflict_dict.iter() {
+        if chunks.len() > 1 {
+            chunk_conflicts_sorted_asc.push((stroke.clone(), chunks.clone()));
+        }
+    }
+
+    chunk_conflicts_sorted_asc.sort_by(|a, b| a.1.len().cmp(&b.1.len()));
+
+    for (stroke, chunks) in chunk_conflicts_sorted_asc.iter() {
+        debug!("CHUNK CONFLICT {} -> {:?}", stroke.print_chords(), chunks);
+    }
+
+    println!(
+        "{}/{} chunk outlines have conflicts",
+        chunk_conflicts_sorted_asc.len(),
+        gen.chunk_conflict_dict.len()
+    );
+
+    let mut word_root_conflicts_sorted_asc = Vec::new();
+    // Figure out the number of conflicting strokes
+    for (stroke, word_roots) in gen.word_root_conflict_dict.iter() {
+        if word_roots.len() > 1 {
+            word_root_conflicts_sorted_asc.push((stroke.clone(), word_roots.clone()));
+        }
+    }
+
+    word_root_conflicts_sorted_asc.sort_by(|a, b| a.1.len().cmp(&b.1.len()));
+
+    for (stroke, word_roots) in word_root_conflicts_sorted_asc.iter() {
+        debug!(
+            "WORD-ROOT-CONFLICT {} -> {:?}",
+            stroke.print_chords(),
+            word_roots
+        );
+    }
+
+    println!(
+        "{}/{} word root outlines have conflicts",
+        word_root_conflicts_sorted_asc.len(),
+        gen.word_root_conflict_dict.len()
+    );
+
+    let stdin = io::stdin();
 
     let fname = "dict.json";
 

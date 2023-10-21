@@ -20,7 +20,9 @@ pub struct Generator {
     center_combos_len_sorted: BTreeMap<LenSortableString<false>, Chord>,
     rh_combos_len_sorted: BTreeMap<LenSortableString<false>, Chord>,
     pub word_root_dict: BTreeMap<LenSortableString<false>, ChordSequence>,
+    pub word_root_conflict_dict: BTreeMap<ChordSequence, BTreeSet<String>>,
     pub chunk_dict: BTreeMap<LenSortableString<false>, ChordSequence>,
+    pub chunk_conflict_dict: BTreeMap<ChordSequence, BTreeSet<String>>,
 }
 
 impl Generator {
@@ -80,14 +82,16 @@ impl Generator {
             center_combos_len_sorted,
             rh_combos_len_sorted,
             word_root_dict,
+            word_root_conflict_dict: BTreeMap::new(),
             chunk_dict,
+            chunk_conflict_dict: BTreeMap::new(),
         })
     }
 
     /// NOTE: Only root recipe is added to the dictionary, but the
     /// complete chord set is returned.
     pub fn add_word_root(&mut self, word: &str) -> Result<ChordSequence, ErrBox> {
-        let (word_chords, chunk_chords) = self.gen_word_chords(word)?;
+        let (word_chords, new_chunk_chords) = self.gen_word_chords(word)?;
         let mut root_chords = word_chords.clone();
         root_chords.items = word_chords
             .items
@@ -101,9 +105,37 @@ impl Generator {
 
         self.word_root_dict
             .insert(root_chords.get_word().into(), root_chords.clone());
-        for chunk in chunk_chords {
+
+	// Record word root conflicts
+        if let Some(existing) = self.word_root_conflict_dict.get_mut(&root_chords) {
+            trace!(
+                "WORD-ROOT-CONFLICT Stroke(s) {} already exist for: {:?}",
+                root_chords.print_chords(),
+                existing
+            );
+            existing.insert(root_chords.get_word());
+        } else {
+            let mut new_set = BTreeSet::new();
+            new_set.insert(root_chords.get_word());
+            self.word_root_conflict_dict.insert(root_chords.clone(), new_set);
+        }
+
+        for chunk in new_chunk_chords {
             self.chunk_dict
                 .insert(chunk.get_word().into(), chunk.clone());
+
+            if let Some(existing) = self.chunk_conflict_dict.get_mut(&chunk) {
+                trace!(
+                    "CHUNK-CONFLICT Stroke(s) {} already exist for: {:?}",
+                    chunk.print_chords(),
+                    existing
+                );
+                existing.insert(chunk.get_word());
+            } else {
+                let mut new_set = BTreeSet::new();
+                new_set.insert(chunk.get_word());
+                self.chunk_conflict_dict.insert(chunk.clone(), new_set);
+            }
         }
         Ok(word_chords)
     }
@@ -320,18 +352,18 @@ impl Generator {
         let prefix_iter = self
             .prefixes_len_sorted
             .iter()
-            .map(|(s, ch)| (ch.to_string(),format!("{}{}", s, "{^}")));
+            .map(|(s, ch)| (ch.to_string(), format!("{}{}", s, "{^}")));
 
         let suffix_iter = self
             .suffixes_len_sorted
             .iter()
-            .map(|(s, ch)| ( ch.to_string(), format!("{}{}", "{^}", s)));
+            .map(|(s, ch)| (ch.to_string(), format!("{}{}", "{^}", s)));
 
         let zipped = chunk_iter.chain(prefix_iter).chain(suffix_iter);
 
-	let final_dict: BTreeMap<String, String> = zipped.collect();
+        let final_dict: BTreeMap<String, String> = zipped.collect();
 
-	serde_json::to_writer_pretty(f, &final_dict)?;
+        serde_json::to_writer_pretty(f, &final_dict)?;
 
         Ok(())
     }
