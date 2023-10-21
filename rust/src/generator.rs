@@ -106,7 +106,7 @@ impl Generator {
         self.word_root_dict
             .insert(root_chords.get_word().into(), root_chords.clone());
 
-	// Record word root conflicts
+        // Record word root conflicts
         if let Some(existing) = self.word_root_conflict_dict.get_mut(&root_chords) {
             trace!(
                 "WORD-ROOT-CONFLICT Stroke(s) {} already exist for: {:?}",
@@ -117,7 +117,8 @@ impl Generator {
         } else {
             let mut new_set = BTreeSet::new();
             new_set.insert(root_chords.get_word());
-            self.word_root_conflict_dict.insert(root_chords.clone(), new_set);
+            self.word_root_conflict_dict
+                .insert(root_chords.clone(), new_set);
         }
 
         for chunk in new_chunk_chords {
@@ -413,23 +414,58 @@ pub fn syllable_split(word: &str) -> Vec<String> {
     let re_string = format!("{consonant_substr}*{vowel_substr}");
     let re = Regex::new(&re_string).unwrap();
 
-    let mut matches: Vec<_> = re.find_iter(word).map(|m| m.as_str().to_owned()).collect();
+    let mut rough_syllables: Vec<_> = re.find_iter(word).map(|m| m.as_str().to_owned()).collect();
 
     let split = re.split(word).collect::<Vec<_>>();
 
     // If the word ends with consonant(s), we add them to the final syllable
-    match (matches.iter_mut().last(), split.iter().last()) {
+    match (rough_syllables.iter_mut().last(), split.iter().last()) {
         (Some(last_match), Some(last_split)) => {
             last_match.push_str(last_split);
         }
         // Edge case: word has no vowels, use as is
         (None, Some(last_split)) => {
-            matches = vec![last_split.to_string()];
+            rough_syllables = vec![last_split.to_string()];
         }
         _other => {}
     }
 
-    matches
+    // Rebalance consonants
+    let mut consonant_group_pattern = String::from("^");
+    consonant_group_pattern.push_str(consonant_substr);
+    consonant_group_pattern.push_str(r"(");
+    consonant_group_pattern.push_str(consonant_substr);
+    consonant_group_pattern.push_str(r"+).*");
+
+    let re_consonant_groups = Regex::new(&consonant_group_pattern).unwrap();
+    trace!("Matching against {}", consonant_group_pattern);
+
+    let mut rebalanced: Vec<_> = rough_syllables.get(0).cloned().into_iter().collect();
+
+    for idx in 1..rough_syllables.len() {
+        trace!("Trying {}", rough_syllables[idx]);
+        if let Some(consonant) = re_consonant_groups
+            .captures(&rough_syllables[idx])
+            .and_then(|caps| caps.get(1))
+        {
+            let rebalance_todo = consonant.as_str();
+
+            trace!("Got {}", rebalance_todo);
+
+            rebalanced.push(
+                rough_syllables[idx]
+                    .strip_prefix(rebalance_todo)
+                    .unwrap()
+                    .to_owned(),
+            );
+
+            rebalanced[idx - 1].push_str(rebalance_todo);
+        } else {
+            rebalanced.push(rough_syllables[idx].clone());
+        }
+    }
+
+    rebalanced
 }
 
 #[cfg(test)]
@@ -442,18 +478,26 @@ mod test {
 
         assert_eq!(
             syllable_split("przebiegłość"),
-            vec!["prze", "bie", "głość"].to_owned()
+            vec!["prze", "bieg", "łość"].to_owned()
         );
         assert_eq!(
             syllable_split("wyniosły"),
-            vec!["wy", "nio", "sły"].to_owned()
+            vec!["wy", "nios", "ły"].to_owned()
         );
-        assert_eq!(syllable_split("aorta"), vec!["a", "o", "rta"].to_owned());
+        assert_eq!(syllable_split("aorta"), vec!["a", "or", "ta"].to_owned());
         assert_eq!(syllable_split("towot"), vec!["to", "wot"].to_owned());
         assert_eq!(
             syllable_split("dodekahedron"),
-            vec!["do", "de", "ka", "he", "dron"].to_owned()
+            vec!["do", "de", "ka", "hed", "ron"].to_owned()
         );
-        assert_eq!(syllable_split("kościół"), vec!["ko", "ściół"].to_owned());
+        assert_eq!(syllable_split("kościół"), vec!["koś", "ciół"].to_owned());
+        assert_eq!(syllable_split("zawżdy"), vec!["zaw", "żdy"].to_owned());
+        assert_eq!(
+            syllable_split("spółgłoska"),
+            vec!["spół", "głos", "ka"].to_owned()
+        );
+
+        assert_eq!(syllable_split("kuchta"), vec!["kuch", "ta"].to_owned());
+        assert_eq!(syllable_split("marzanna"), vec!["ma", "rzan", "na"].to_owned());
     }
 }
