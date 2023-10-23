@@ -2446,12 +2446,12 @@ pub static SHORTCUTS: phf::Map<&'static str, &'static str> = phf::phf_map! {
 
 pub static SPECIAL_CHARS: phf::Map<&'static str, &'static str> = phf::phf_map! {
     // page 302
-    "," => "V-B",
-    "." => "P-L",
-    "?" => "V-L",
-    "!" => "P-B",
-    ";" => "VR-RB",
-    ":" => "VR*RB",
+    "{.}" => "P-L",
+    "{,}" => "V-B",
+    "{?}" => "V-L",
+    "{!}" => "P-B",
+    "{;}" => "VR-RB",
+    "{:}" => "VR*RB",
     "\\" => "PL-RB",
     "/" => "VR-CL",
     "\"" => "KPL-CLS",
@@ -2459,20 +2459,20 @@ pub static SPECIAL_CHARS: phf::Map<&'static str, &'static str> = phf::phf_map! {
     ")" => "ZKPL-CLST",
     "-" => "ST-GW",
     "--" => "ST*GW",
-    "..." => "ZK-ST",
+    "{:stop:...}" => "ZK-ST",
     "@" => "PVLR-CRLB",
     "{" => "KTPV-LBSG",
     "}" => "ZKST-SGTW",
     "'" => "LR-CR",
     "[" => "KTPV-LBSG",
     "]" => "KTPV*LBSG",
-    "~.~" => "X*O", // Like pornhub.com
+    "{^.^}" => "X*O", // Like pornhub.com
 
     // page 303
     // TODO(2022-11-21): Use proper Plover syntax for these actions
     "<new page>" => "P-CRLBSGTW",
-    "<new line>" => "L-CRLBSGTW",
-    "<tab>" => "T-CRLBSGTW",
+    "\n" => "L-CRLBSGTW",
+    "\t" => "T-CRLBSGTW",
     "<new paragraph>" => "R-CRLBSGTW",
 
     // page 304
@@ -2481,14 +2481,29 @@ pub static SPECIAL_CHARS: phf::Map<&'static str, &'static str> = phf::phf_map! {
     // and surname, colon and space
     "<speaker1>" => "ZSKTVLR-C",
     "<speaker2>" => "ZSKTPVLR-L",
-    "<speaker3>" => "ZKSTPVLR-S",
-    "<speaker4>" => "ZKSTPVLR-T",
-    "<speaker5>" => "ZKSTPVLR-O",
-    "<speaker6>" => "ZKSTPVLR-R",
-    "<speaker7>" => "ZKSTPVLR-B",
-    "<speaker8>" => "ZKSTPVLR-G",
-    "<speaker9>" => "ZKSTPVLR-W",
-    "<speaker10>" => "ZKSTPVLR-Y",
+    "<speaker3>" => "ZSKTPVLR-S",
+    "<speaker4>" => "ZSKTPVLR-T",
+    "<speaker5>" => "ZSKTPVLR-O",
+    "<speaker6>" => "ZSKTPVLR-R",
+    "<speaker7>" => "ZSKTPVLR-B",
+    "<speaker8>" => "ZSKTPVLR-G",
+    "<speaker9>" => "ZSKTPVLR-W",
+    "<speaker10>" => "ZSKTPVLR-Y",
+};
+
+pub static COMMANDS: phf::Map<&'static str, &'static str> = phf::phf_map! {
+    // Enable/disable output. WARNING: This will be parsed by this
+    // codebase as an invalid combination due to JIU
+    "{plover:toggle}" => "JEIAU",
+
+    // Force space
+    "{^ ^}" => "~",
+
+    // Capitalize the previous word
+    "{*-|}" => "X~",
+
+    // Capitalize next word
+    "{-|}" => "~O",
 };
 
 // Contains words like "pralina" which shouldn't use "pra-" like "pradziadek"

@@ -345,11 +345,12 @@ impl Generator {
         Ok(chunk_chords)
     }
 
+    #[deny(unused_variables)]
     pub fn save_to_file(&self, f: File) -> Result<(), ErrBox> {
         let chunk_iter = self
             .chunk_dict
             .iter()
-            .map(|(s, ch_seq)| (ch_seq.print_chords(), LenSortableString::into(s.clone())));
+            .map(|(s, ch_seq)| (ch_seq.print_chords(), format!("{{&{}}}", s)));
 
         let prefix_iter = self
             .prefixes_len_sorted
@@ -361,9 +362,17 @@ impl Generator {
             .iter()
             .map(|(s, ch)| (ch.to_string(), format!("{}{}", "{^}", s)));
 
-        let zipped = chunk_iter.chain(prefix_iter).chain(suffix_iter);
+        let special_char_iter = dict_lookup::SPECIAL_CHARS
+            .into_iter()
+            .map(|(s, ch)| (ch.to_string(), s.to_string()));
 
-        let final_dict: BTreeMap<String, String> = zipped.collect();
+        let commands_iter = dict_lookup::COMMANDS
+            .into_iter()
+            .map(|(s, ch)| (ch.to_string(), s.to_string()));
+
+        let chained = chunk_iter.chain(prefix_iter).chain(suffix_iter).chain(special_char_iter).chain(commands_iter);
+
+        let final_dict: BTreeMap<String, String> = chained.collect();
 
         serde_json::to_writer_pretty(f, &final_dict)?;
 
@@ -408,31 +417,30 @@ pub fn find_longest_affix<const ASC: bool, T: Clone>(
     None
 }
 
-const CONSONANT_SUBSTR: &'static str = 
-        "(ch|cz|dz|dź|dż|sz|rz|b|c|ć|d|f|g|h|j|k|l|ł|m|n|ń|p|q|r|s|ś|t|v|w|x|z|ź|ż)";
+const CONSONANT_SUBSTR: &'static str =
+    "(ch|cz|dz|dź|dż|sz|rz|b|c|ć|d|f|g|h|j|k|l|ł|m|n|ń|p|q|r|s|ś|t|v|w|x|z|ź|ż)";
 const VOWEL_SUBSTR: &'static str = "(ia|ią|ie|ię|io|iu|ió|au|eu|a|ą|e|ę|i|o|ó|u|y)";
 
 lazy_static! {
     static ref RE_ROUGH_SYL: Regex = {
-	let rough_syl_pattern: String = format!("{}*{}", CONSONANT_SUBSTR, VOWEL_SUBSTR);
-	Regex::new(&rough_syl_pattern).unwrap()
+        let rough_syl_pattern: String = format!("{}*{}", CONSONANT_SUBSTR, VOWEL_SUBSTR);
+        Regex::new(&rough_syl_pattern).unwrap()
     };
     static ref RE_CONSONANT_GROUP: Regex = {
-	let consonant_group_pattern: String = format!("^({}{}+).*", CONSONANT_SUBSTR, CONSONANT_SUBSTR);
+        let consonant_group_pattern: String =
+            format!("^({}{}+).*", CONSONANT_SUBSTR, CONSONANT_SUBSTR);
 
-	Regex::new(&consonant_group_pattern).unwrap()
+        Regex::new(&consonant_group_pattern).unwrap()
     };
-
     static ref RE_SINGLE_CONSONANT: Regex = {
-	let single_consonant_pattern: String = format!("^{}$", CONSONANT_SUBSTR);
+        let single_consonant_pattern: String = format!("^{}$", CONSONANT_SUBSTR);
 
-	Regex::new(&single_consonant_pattern).unwrap()
+        Regex::new(&single_consonant_pattern).unwrap()
     };
 }
 
 pub fn syllable_split(word: &str) -> Vec<String> {
-
-    let mut rough_syllables: Vec<_> = RE_ROUGH_SYL 
+    let mut rough_syllables: Vec<_> = RE_ROUGH_SYL
         .find_iter(word)
         .map(|m| m.as_str().to_owned())
         .collect();
