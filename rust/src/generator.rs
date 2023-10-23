@@ -1,3 +1,4 @@
+use lazy_static::lazy_static;
 use log::{debug, error, info, trace, warn};
 use regex::Regex;
 
@@ -407,16 +408,36 @@ pub fn find_longest_affix<const ASC: bool, T: Clone>(
     None
 }
 
+const CONSONANT_SUBSTR: &'static str = 
+        "(ch|cz|dz|dź|dż|sz|rz|b|c|ć|d|f|g|h|j|k|l|ł|m|n|ń|p|q|r|s|ś|t|v|w|x|z|ź|ż)";
+const VOWEL_SUBSTR: &'static str = "(ia|ią|ie|ię|io|iu|ió|au|eu|a|ą|e|ę|i|o|ó|u|y)";
+
+lazy_static! {
+    static ref RE_ROUGH_SYL: Regex = {
+	let rough_syl_pattern: String = format!("{}*{}", CONSONANT_SUBSTR, VOWEL_SUBSTR);
+	Regex::new(&rough_syl_pattern).unwrap()
+    };
+    static ref RE_CONSONANT_GROUP: Regex = {
+	let consonant_group_pattern: String = format!("^({}{}+).*", CONSONANT_SUBSTR, CONSONANT_SUBSTR);
+
+	Regex::new(&consonant_group_pattern).unwrap()
+    };
+
+    static ref RE_SINGLE_CONSONANT: Regex = {
+	let single_consonant_pattern: String = format!("^{}$", CONSONANT_SUBSTR);
+
+	Regex::new(&single_consonant_pattern).unwrap()
+    };
+}
+
 pub fn syllable_split(word: &str) -> Vec<String> {
-    let consonant_substr =
-        "(ch|cz|dz|dź|sz|rz|b|c|ć|d|f|g|h|j|k|l|ł|m|n|ń|p|q|r|s|ś|t|v|w|x|z|ź|ż)";
-    let vowel_substr = "(ia|ią|ie|ię|io|iu|ió|au|eu|a|ą|e|ę|i|o|ó|u|y)";
-    let re_string = format!("{consonant_substr}*{vowel_substr}");
-    let re = Regex::new(&re_string).unwrap();
 
-    let mut rough_syllables: Vec<_> = re.find_iter(word).map(|m| m.as_str().to_owned()).collect();
+    let mut rough_syllables: Vec<_> = RE_ROUGH_SYL 
+        .find_iter(word)
+        .map(|m| m.as_str().to_owned())
+        .collect();
 
-    let split = re.split(word).collect::<Vec<_>>();
+    let split = RE_ROUGH_SYL.split(word).collect::<Vec<_>>();
 
     // If the word ends with consonant(s), we add them to the final syllable
     match (rough_syllables.iter_mut().last(), split.iter().last()) {
@@ -430,39 +451,42 @@ pub fn syllable_split(word: &str) -> Vec<String> {
         _other => {}
     }
 
-    // Rebalance consonants
-    let mut consonant_group_pattern = String::from("^");
-    consonant_group_pattern.push_str(consonant_substr);
-    consonant_group_pattern.push_str(r"(");
-    consonant_group_pattern.push_str(consonant_substr);
-    consonant_group_pattern.push_str(r"+).*");
-
-    let re_consonant_groups = Regex::new(&consonant_group_pattern).unwrap();
-    trace!("Matching against {}", consonant_group_pattern);
-
     let mut rebalanced: Vec<_> = rough_syllables.get(0).cloned().into_iter().collect();
 
+    // Rebalance consonants
     for idx in 1..rough_syllables.len() {
         trace!("Trying {}", rough_syllables[idx]);
-        if let Some(consonant) = re_consonant_groups
-            .captures(&rough_syllables[idx])
-            .and_then(|caps| caps.get(1))
-        {
-            let rebalance_todo = consonant.as_str();
+        let mut push_todo = rough_syllables[idx].clone();
 
-            trace!("Got {}", rebalance_todo);
+        if let Some(caps) = RE_CONSONANT_GROUP.captures(&rough_syllables[idx]) {
+            if let Some(group) = caps.get(1) {
+                let grp = group.as_str();
+                trace!("Checking {} for single consonant digraph", grp);
 
-            rebalanced.push(
-                rough_syllables[idx]
-                    .strip_prefix(rebalance_todo)
-                    .unwrap()
-                    .to_owned(),
-            );
+                if (*RE_SINGLE_CONSONANT).is_match(grp) {
+                    trace!("{} is a single digraph", grp);
+                } else {
+                    trace!("{} is not a single digraph", grp);
+                    if let Some(consonant) = caps.get(2) {
+                        let rebalance_todo = consonant.as_str();
+                        push_todo = rough_syllables[idx]
+                            .strip_prefix(rebalance_todo)
+                            .unwrap()
+                            .to_owned();
 
-            rebalanced[idx - 1].push_str(rebalance_todo);
-        } else {
-            rebalanced.push(rough_syllables[idx].clone());
+                        trace!(
+                            "{} <- {} + {}",
+                            rebalanced[idx - 1],
+                            rebalance_todo,
+                            push_todo
+                        );
+
+                        rebalanced[idx - 1].push_str(rebalance_todo);
+                    }
+                }
+            }
         }
+        rebalanced.push(push_todo);
     }
 
     rebalanced
@@ -498,6 +522,11 @@ mod test {
         );
 
         assert_eq!(syllable_split("kuchta"), vec!["kuch", "ta"].to_owned());
-        assert_eq!(syllable_split("marzanna"), vec!["ma", "rzan", "na"].to_owned());
+        assert_eq!(
+            syllable_split("marzanna"),
+            vec!["ma", "rzan", "na"].to_owned()
+        );
+
+        assert_eq!(syllable_split("marznąć"), vec!["marz", "nąć"].to_owned());
     }
 }
