@@ -2479,7 +2479,7 @@ pub static SPECIAL_CHARS: phf::Map<&'static str, &'static str> = phf::phf_map! {
     // TODO(2022-11-21): Fill in with actions in Plover's
     // format. Needs to go to a new-line, tab in, put speaker title
     // and surname, colon and space
-    "<speaker1>" => "ZSKTVLR-C",
+    "<speaker1>" => "ZSKTPVLR-C",
     "<speaker2>" => "ZSKTPVLR-L",
     "<speaker3>" => "ZSKTPVLR-S",
     "<speaker4>" => "ZSKTPVLR-T",
