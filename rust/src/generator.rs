@@ -394,9 +394,17 @@ impl Generator {
             .iter()
             .map(|(s, ch)| (ch.to_string(), format!("{}{}", "{^}", s)));
 
-        let zipped = word_root_iter.chain(prefix_iter).chain(suffix_iter);
+        let special_char_iter = dict_lookup::SPECIAL_CHARS
+            .into_iter()
+            .map(|(s, ch)| (ch.to_string(), s.to_string()));
 
-        let final_dict: BTreeMap<String, String> = zipped.collect();
+        let commands_iter = dict_lookup::COMMANDS
+            .into_iter()
+            .map(|(s, ch)| (ch.to_string(), s.to_string()));
+
+        let chained = word_root_iter.chain(prefix_iter).chain(suffix_iter).chain(special_char_iter).chain(commands_iter);
+
+        let final_dict: BTreeMap<String, String> = chained.collect();
 
         serde_json::to_writer_pretty(f, &final_dict)?;
 
