@@ -2496,8 +2496,14 @@ pub static COMMANDS: phf::Map<&'static str, &'static str> = phf::phf_map! {
     // codebase as an invalid combination due to JIU
     "{plover:toggle}" => "JEIAU",
 
+    // Add a new dictionary entry
+    "{plover:add_translation}" => "JIU",
+
+    // Lookup outlines
+    "{plover:lookup}" => "JIAU",
+
     // Force space
-    "{^ ^}" => "~",
+    "{^ ^}" => SPACING_INFIX,
 
     // Capitalize the previous word
     "{*-|}" => "X~",
