@@ -123,13 +123,21 @@ fn main() -> Result<(), ErrBox> {
 
     let stdin = io::stdin();
 
-    let fname = "dict.json";
+    let fname = "syllables.json";
 
     let f = File::create(fname)?;
 
-    gen.save_to_file(f)?;
+    gen.save_syllables(f)?;
 
-    println!("Wrote to {}", fname);
+    println!("Wrote syllables to {}", fname);
+
+    let fname = "word_roots.json";
+
+    let f = File::create(fname)?;
+
+    gen.save_word_roots(f)?;
+
+    println!("Wrote word roots to {}", fname);
 
     loop {
         let mut line_buf = String::new();

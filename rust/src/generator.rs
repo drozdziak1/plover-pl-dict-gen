@@ -345,8 +345,7 @@ impl Generator {
         Ok(chunk_chords)
     }
 
-    #[deny(unused_variables)]
-    pub fn save_to_file(&self, f: File) -> Result<(), ErrBox> {
+    pub fn save_syllables(&self, f: File) -> Result<(), ErrBox> {
         let chunk_iter = self
             .chunk_dict
             .iter()
@@ -373,6 +372,31 @@ impl Generator {
         let chained = chunk_iter.chain(prefix_iter).chain(suffix_iter).chain(special_char_iter).chain(commands_iter);
 
         let final_dict: BTreeMap<String, String> = chained.collect();
+
+        serde_json::to_writer_pretty(f, &final_dict)?;
+
+        Ok(())
+    }
+
+    pub fn save_word_roots(&self, f: File) -> Result<(), ErrBox> {
+        let word_root_iter = self
+            .word_root_dict
+            .iter()
+            .map(|(s, ch_seq)| (ch_seq.print_chords(), LenSortableString::into(s.clone())));
+
+        let prefix_iter = self
+            .prefixes_len_sorted
+            .iter()
+            .map(|(s, ch)| (ch.to_string(), format!("{}{}", s, "{^}")));
+
+        let suffix_iter = self
+            .suffixes_len_sorted
+            .iter()
+            .map(|(s, ch)| (ch.to_string(), format!("{}{}", "{^}", s)));
+
+        let zipped = word_root_iter.chain(prefix_iter).chain(suffix_iter);
+
+        let final_dict: BTreeMap<String, String> = zipped.collect();
 
         serde_json::to_writer_pretty(f, &final_dict)?;
 
