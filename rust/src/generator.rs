@@ -94,15 +94,15 @@ impl Generator {
     pub fn add_word_root(&mut self, word: &str) -> Result<ChordSequence, ErrBox> {
         let (word_chords, new_chunk_chords) = self.gen_word_chords(word)?;
         let mut root_chords = word_chords.clone();
-        root_chords.items = word_chords
-            .items
-            .iter()
-            .filter_map(|item| match item {
-                &ChordSeqItem::RootChord(_, _) => Some(item),
-                _other => None,
-            })
-            .cloned()
-            .collect();
+        // root_chords.items = word_chords
+        //     .items
+        //     .iter()
+        //     .filter_map(|item| match item {
+        //         &ChordSeqItem::RootChord(_, _) => Some(item),
+        //         _other => None,
+        //     })
+        //     .cloned()
+        //     .collect();
 
         self.word_root_dict
             .insert(root_chords.get_word().into(), root_chords.clone());

@@ -27,25 +27,23 @@ fn main() -> Result<(), ErrBox> {
 
     let sjp_sanitized_len_sorted: BTreeSet<LenSortableString<true>> = dict_lookup::SJP_DICT
         .lines()
-        .filter_map(|l| {
-            match l.split(", ").next() {
-                Some(word) => {
-                    let sanitized = word.trim().to_lowercase();
+        .map(|l| {
+            l.split(", ").filter_map(|word| {
+                let sanitized = word.trim().to_lowercase();
 
-                    if sanitized.chars().any(|ch| {
-                        !(ch.is_ascii_alphabetic() || dict_lookup::PL_DIACRITICS.contains(ch)) // Ascii alphabet + PL accents only
+                if sanitized.chars().any(|ch| {
+                    !(ch.is_ascii_alphabetic() || dict_lookup::PL_DIACRITICS.contains(ch)) // Ascii alphabet + PL accents only
 		    || ch.is_whitespace() // No multi-word entries
-                    }) || sanitized.chars().count() < 2
-                    // No single character entries
-                    {
-                        None
-                    } else {
-                        Some(sanitized.into())
-                    }
+                }) || sanitized.chars().count() < 2
+                // No single character entries
+                {
+                    None
+                } else {
+                    Some(sanitized.into())
                 }
-                None => None,
-            }
+            })
         })
+        .flatten()
         .collect();
 
     println!("Raw SJP OK");
