@@ -56,8 +56,7 @@ pub static LEFT_HAND_COMBOS: phf::Map<&'static str, &'static str> = phf::phf_map
     "rz" => "RJ",
 
     // page 42
-    // NOTE(2022-11-16): I did not understand the expansion rule very well. I hope that I resolved the conflict with dzi correctly.
-    "dź" => "TJ~",
+    "dź" => "TJI",
     "dzi" => "TJI",
     "dzie" => "TJEI",
     "ć" => "T~",
